@@ -100,3 +100,47 @@
 NVIDIA Nsight Systems：这是一个系统级的性能分析工具，可以显示应用程序的CPU和GPU活动的时间线，并提供一些性能指标和建议4。
 NVIDIA Nsight Compute：这是一个内核级的性能分析工具，可以显示kernel函数的详细信息，并提供一些性能指标和建议4。
 */
+
+
+/*
+好的，我可以为你设计一些使用场景，包括以上所有 api，除了图管理和互操作性之外。😊
+
+以下是一些可能的使用场景：
+
+- **使用设备管理、上下文管理、内存管理、模块管理和执行控制 api 来加载和运行一个简单的 GPU 内核**¹²：
+
+  - 首先，需要使用 `cuInit` 函数来初始化 cuda driver api，并使用 `cuDeviceGet` 函数来获取第一个可用的 GPU 设备。
+  - 然后，需要使用 `cuCtxCreate` 函数来创建一个 GPU 上下文，并使用 `cuCtxSetCurrent` 函数来将其设置为当前上下文。
+  - 接着，需要使用 `cuModuleLoad` 函数来加载一个包含 GPU 内核的 ptx 文件，并使用 `cuModuleGetFunction` 函数来获取内核函数的句柄。
+  - 然后，需要使用 `cuMemAlloc` 函数来分配 GPU 上的内存，并使用 `cuMemcpyHtoD` 函数来将主机上的数据复制到 GPU 上。
+  - 接着，需要使用 `cuLaunchKernel` 函数来配置和启动 GPU 内核，并传入内核函数的句柄、网格和块的维度、共享内存的大小、流的句柄和内核参数的指针。
+  - 最后，需要使用 `cuCtxSynchronize` 函数来等待 GPU 上的所有操作完成，并使用 `cuMemcpyDtoH` 函数来将 GPU 上的结果复制到主机上。然后，需要使用 `cuMemFree`、`cuModuleUnload` 和 `cuCtxDestroy` 函数来释放 GPU 上的资源。
+
+- **使用设备管理、上下文管理、内存管理、模块管理、执行控制和流管理 api 来实现异步执行和重叠计算与数据传输**¹²：
+
+  - 首先，需要使用 `cuInit`、`cuDeviceGet` 和 `cuCtxCreate` 函数来初始化 cuda driver api 并创建一个 GPU 上下文。
+  - 然后，需要使用 `cuStreamCreate` 函数来创建多个 GPU 流，并将它们分配给不同的任务，例如计算或数据传输。
+  - 接着，需要使用 `cuModuleLoad` 和 `cuModuleGetFunction` 函数来加载并获取 GPU 内核函数的句柄。
+  - 然后，需要使用 `cuMemAllocHost` 和 `cuMemAlloc` 函数来分配主机和 GPU 上的内存，并将它们分成多个块。
+  - 接着，需要在一个循环中执行以下操作：
+    - 使用 `cuMemcpyHtoDAsync` 函数将主机上的一个数据块异步复制到 GPU 上，并指定一个流作为参数。
+    - 使用 `cuLaunchKernel` 函数在同一个流中异步启动 GPU 内核，并传入相应的参数。
+    - 使用 `cuMemcpyDtoHAsync` 函数将 GPU 上的一个结果块异步复制到主机上，并指定另一个流作为参数。
+  - 最后，需要使用 `cuStreamSynchronize` 或 `cuCtxSynchronize` 函数来等待所有流中的操作完成，并使用 `cuMemFreeHost`、`cuMemFree`、`cuModuleUnload`、`cuStreamDestroy` 和 `cuCtxDestroy` 函数来释放资源。
+
+- **使用设备管理、上下文管理、内存管理、模块管理、执行控制和事件管理 api 来测量 GPU 内核的执行时间**¹²：
+
+  - 首先，需要使用 `cuInit`、`cuDeviceGet` 和 `cuCtxCreate` 函数来初始化 cuda driver api 并创建一个 GPU 上下文。
+  - 然后，需要使用 `cuEventCreate` 函数来创建两个 GPU 事件，并设置它们为计时模式。
+  - 接着，需要使用 `cuModuleLoad` 和 `cuModuleGetFunction` 函数来加载并获取 GPU 内核函数的句柄。
+  - 然后，需要使用 `cuEventRecord` 函数在默认流中记录第一个事件，并传入开始标志作为参数。
+  - 接着，需要使用 `cuLaunchKernel` 函数在默认流中启动 GPU 内核，并传入相应的参数。
+  - 然后，需要使用 `cuEventRecord` 函数在默认流中记录第二个事件，并传入结束标志作为参数。
+  - 接着，需要使用 `cuEventSynchronize` 或 `cuCtxSynchronize` 函数来等待第二个事件完成。
+  - 最后，需要使用 `cuEventElapsedTime` 函数来获取两个事件之间经过的时间，并打印出结果。然后，需要使用 `cuEventDestroy`、
+    `cuModuleUnload` 和 `cuCtxDestroy` 函数来释放资源。
+
+(1) CUDA Driver API :: CUDA Toolkit Documentation. https://docs.nvidia.com/cuda/cuda-driver-api/index.html.
+(2) 浅谈Cuda driver API - 知乎. https://zhuanlan.zhihu.com/p/111602648.
+(3) CUDA 编程手册系列 附录L – CUDA底层驱动API（一） - 知乎. https://zhuanlan.zhihu.com/p/561961012.
+*/
