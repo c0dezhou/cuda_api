@@ -1,94 +1,146 @@
-#include "test_utils.h"
+#include <cuda.h>
+#include <iostream>
+#include <thread>
+#include <vector>
+#include <cmath> // For std::abs()
 
-int N = 50;
-
-CUdevice device = 0;
-
-CUmodule module;
-
-CUfunction vecadd, vecscal;
-
-CUcontext context;
-
-void run_kernel(int thread_id) {
-    printf("Thread %d started.\n", thread_id);
-
-    CUcontext context_new;
-    checkError(cuCtxCreate(&context_new, 0, device));
-    checkError(cuCtxSetCurrent(context_new));
-
-    CUdeviceptr d_a = NULL;
-    CUdeviceptr d_b = NULL;
-    CUdeviceptr d_c = NULL;
-    size_t size = sizeof(int) * N;
-    checkError(cuMemAlloc(&d_a, size));
-    checkError(cuMemAlloc(&d_b, size));
-    checkError(cuMemAlloc(&d_c, size));
-
-    int h_a[N];
-    int h_b[N];
-    for (int i = 0; i < N; i++) {
-        h_a[i] = i + thread_id;
-        h_b[i] = i + thread_id;
+// CUDA kernel 1
+__global__ void kernel1(float* data, int size) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < size) {
+        data[i] *= 2.0f;
     }
-    checkError(cuMemcpyHtoD(d_a, h_a, size));
-    checkError(cuMemcpyHtoD(d_b, h_b, size));
-
-    checkError(cuModuleLoad(&module,
-                            "/data/system/yunfan/cuda_api/common/cuda_kernel/"
-                            "cuda_kernel.ptx"));
-
-    checkError(cuModuleGetFunction(&vecadd, module, "_Z6vecAddPfS_S_"));
-    checkError(cuModuleGetFunction(&vecscal, module, "_Z8vecScalePff"));
-
-    int block_size = 256;
-    int grid_size = (N + block_size - 1) / block_size;
-    int gridDimX = 2, gridDimY = 2, gridDimZ = 1;
-    int blockDimX = 16, blockDimY = 16, blockDimZ = 1;
-    int sharedMemBytes = 256;
-    void* args[] = {&d_a, &d_b, &d_c, &N};
-    checkError(cuLaunchKernel(vecadd, gridDimX, gridDimY, gridDimZ, blockDimX,
-                              blockDimY, blockDimZ, sharedMemBytes, 0, args,
-                              nullptr));
-
-    float factor = thread_id + 1.0f;
-    void* args2[] = {&d_c, &factor};
-    checkError(cuLaunchKernel(vecscal, gridDimX, gridDimY, gridDimZ, blockDimX,
-                              blockDimY, blockDimZ, sharedMemBytes, 0, args,
-                              nullptr));
-
-    checkError(cuCtxSynchronize());
-    checkError(cuStreamSynchronize(0));
-
-    int h_c[N];
-    checkError(cuMemcpyDtoH(h_c, d_c, size));
-    for (int i = 0; i < N; i++) {
-        printf("%d + %d = %d\n", h_a[i], h_b[i], h_c[i]);
-    }
-
-    checkError(cuMemFree(d_a));
-    checkError(cuMemFree(d_b));
-    checkError(cuMemFree(d_c));
-    checkError(cuCtxDestroy(context_new));
-
-    printf("Thread %d finished.\n", thread_id);
 }
 
-TEST(MTHCOMPLEX, runsamekernel) {
-    checkError(cuInit(0));
-    checkError(cuDeviceGet(&device, 0));
-    checkError(cuCtxCreate(&context, 0, device));
+// CUDA kernel 2
+__global__ void kernel2(float* data, int size) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < size) {
+        data[i] += 3.0f;
+    }
+}
 
-    const int M = 4;
+// CUDA kernel 3
+__global__ void kernel3(float* data, int size) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < size) {
+        data[i] -= 1.0f;
+    }
+}
 
-    std::thread threads[M];
-    for (int i = 0; i < M; i++) {
-        threads[i] = std::thread(run_kernel, i);
+// CUDA error checking macro
+#define CHECK_CUDA(call)                                                             \
+    {                                                                                 \
+        CUresult result = call;                                                       \
+        if (result != CUDA_SUCCESS) {                                                 \
+            const char* errorStr;                                                     \
+            cuGetErrorString(result, &errorStr);                                       \
+            std::cerr << "CUDA error: " << errorStr << std::endl;                      \
+            std::exit(1);                                                             \
+        }                                                                             \
     }
 
-    for (int i = 0; i < M; i++) {
-        threads[i].join();
-        printf("Thread %d joined.\n", i);
+void performCUDAOperations(int threadId, CUcontext context, CUdeviceptr d_data, int size) {
+    // Create CUDA events
+    CUevent event1, event2;
+
+    CHECK_CUDA(cuEventCreate(&event1, CU_EVENT_DEFAULT));
+    CHECK_CUDA(cuEventCreate(&event2, CU_EVENT_DEFAULT));
+
+    // Calculate the portion of data for this thread
+    int dataSizePerThread = size / 4;
+    int startIndex = threadId * dataSizePerThread;
+    int endIndex = startIndex + dataSizePerThread;
+
+    // Select kernel based on thread ID
+    CUfunction kernel;
+    if (threadId == 0)
+        kernel = kernel1;
+    else if (threadId == 1)
+        kernel = kernel2;
+    else
+        kernel = kernel3;
+
+    // Perform CUDA operations
+    CHECK_CUDA(cuEventRecord(event1, 0));
+    CHECK_CUDA(cuLaunchKernel(kernel, (size + 255) / 256, 1, 1, 256, 1, 1, 0, 0, &d_data, &size));
+    CHECK_CUDA(cuEventRecord(event2, 0));
+
+    // Synchronize events
+    CHECK_CUDA(cuEventSynchronize(event2));
+
+    // Print results
+    std::cout << "Thread " << threadId << " finished" << std::endl;
+
+    // Cleanup
+    CHECK_CUDA(cuEventDestroy(event1));
+    CHECK_CUDA(cuEventDestroy(event2));
+}
+
+bool verifyResult(const std::vector<float>& data, float expectedValue) {
+    for (const auto& element : data) {
+        if (std::abs(element - expectedValue) > 1e-5) {
+            return false; // Result doesn't match expected value
+        }
     }
-    checkError(cuCtxDestroy(context));
+    return true; // Result matches expected value
+}
+
+int main() {
+    const int dataSize = 10000;
+    const int numThreads = 4;
+
+    // Initialize CUDA
+    CHECK_CUDA(cuInit(0));
+
+    // Create CUDA context
+    CUcontext context;
+    CHECK_CUDA(cuCtxCreate(&context, 0, 0));
+
+    // Load CUDA module
+    CUmodule module;
+    CHECK_CUDA(cuModuleLoad(&module, "path/to/cuda_module.ptx"));
+
+    // Get CUDA kernel functions
+    CUfunction kernel1, kernel2, kernel3;
+    CHECK_CUDA(cuModuleGetFunction(&kernel1, module, "kernel1"));
+    CHECK_CUDA(cuModuleGetFunction(&kernel2, module, "kernel2"));
+    CHECK_CUDA(cuModuleGetFunction(&kernel3, module, "kernel3"));
+
+    // Allocate device memory
+    CUdeviceptr d_data;
+    CHECK_CUDA(cuMemAlloc(&d_data, dataSize * sizeof(float)));
+
+    // Initialize host data
+    std::vector<float> h_data(dataSize, 1.0f);
+
+    // Copy host data to device
+    CHECK_CUDA(cuMemcpyHtoD(d_data, h_data.data(), dataSize * sizeof(float)));
+
+    // Create threads and perform CUDA operations
+    std::vector<std::thread> threads(numThreads);
+    for (int i = 0; i < numThreads; ++i) {
+        threads[i] = std::thread(performCUDAOperations, i, context, d_data, dataSize);
+    }
+
+    // Wait for all threads to finish
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    // Copy device data back to host
+    CHECK_CUDA(cuMemcpyDtoH(h_data.data(), d_data, dataSize * sizeof(float)));
+
+    // Verify the result
+    bool resultIsValid = verifyResult(h_data, 4.0f); // Expected value based on the performed operations
+
+    // Print result validity
+    std::cout << "Result is " << (resultIsValid ? "valid" : "invalid") << std::endl;
+
+    // Cleanup
+    CHECK_CUDA(cuMemFree(d_data));
+    CHECK_CUDA(cuModuleUnload(module));
+    CHECK_CUDA(cuCtxDestroy(context));
+
+    return 0;
 }
