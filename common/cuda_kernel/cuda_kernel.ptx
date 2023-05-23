@@ -364,4 +364,172 @@ $L__BB9_3:
 	ret;
 
 }
+	// .globl	_Z14vec_multiply_2Pfi
+.visible .entry _Z14vec_multiply_2Pfi(
+	.param .u64 _Z14vec_multiply_2Pfi_param_0,
+	.param .u32 _Z14vec_multiply_2Pfi_param_1
+)
+{
+	.reg .pred 	%p<2>;
+	.reg .f32 	%f<3>;
+	.reg .b32 	%r<6>;
+	.reg .b64 	%rd<5>;
+
+
+	ld.param.u64 	%rd1, [_Z14vec_multiply_2Pfi_param_0];
+	ld.param.u32 	%r2, [_Z14vec_multiply_2Pfi_param_1];
+	mov.u32 	%r3, %ctaid.x;
+	mov.u32 	%r4, %ntid.x;
+	mov.u32 	%r5, %tid.x;
+	mad.lo.s32 	%r1, %r3, %r4, %r5;
+	setp.ge.s32 	%p1, %r1, %r2;
+	@%p1 bra 	$L__BB10_2;
+
+	cvta.to.global.u64 	%rd2, %rd1;
+	mul.wide.s32 	%rd3, %r1, 4;
+	add.s64 	%rd4, %rd2, %rd3;
+	ld.global.f32 	%f1, [%rd4];
+	add.f32 	%f2, %f1, %f1;
+	st.global.f32 	[%rd4], %f2;
+
+$L__BB10_2:
+	ret;
+
+}
+	// .globl	_Z9vec_add_3Pfi
+.visible .entry _Z9vec_add_3Pfi(
+	.param .u64 _Z9vec_add_3Pfi_param_0,
+	.param .u32 _Z9vec_add_3Pfi_param_1
+)
+{
+	.reg .pred 	%p<2>;
+	.reg .f32 	%f<3>;
+	.reg .b32 	%r<6>;
+	.reg .b64 	%rd<5>;
+
+
+	ld.param.u64 	%rd1, [_Z9vec_add_3Pfi_param_0];
+	ld.param.u32 	%r2, [_Z9vec_add_3Pfi_param_1];
+	mov.u32 	%r3, %ctaid.x;
+	mov.u32 	%r4, %ntid.x;
+	mov.u32 	%r5, %tid.x;
+	mad.lo.s32 	%r1, %r3, %r4, %r5;
+	setp.ge.s32 	%p1, %r1, %r2;
+	@%p1 bra 	$L__BB11_2;
+
+	cvta.to.global.u64 	%rd2, %rd1;
+	mul.wide.s32 	%rd3, %r1, 4;
+	add.s64 	%rd4, %rd2, %rd3;
+	ld.global.f32 	%f1, [%rd4];
+	add.f32 	%f2, %f1, 0f40400000;
+	st.global.f32 	[%rd4], %f2;
+
+$L__BB11_2:
+	ret;
+
+}
+	// .globl	_Z9vec_sub_1Pfi
+.visible .entry _Z9vec_sub_1Pfi(
+	.param .u64 _Z9vec_sub_1Pfi_param_0,
+	.param .u32 _Z9vec_sub_1Pfi_param_1
+)
+{
+	.reg .pred 	%p<2>;
+	.reg .f32 	%f<3>;
+	.reg .b32 	%r<6>;
+	.reg .b64 	%rd<5>;
+
+
+	ld.param.u64 	%rd1, [_Z9vec_sub_1Pfi_param_0];
+	ld.param.u32 	%r2, [_Z9vec_sub_1Pfi_param_1];
+	mov.u32 	%r3, %ctaid.x;
+	mov.u32 	%r4, %ntid.x;
+	mov.u32 	%r5, %tid.x;
+	mad.lo.s32 	%r1, %r3, %r4, %r5;
+	setp.ge.s32 	%p1, %r1, %r2;
+	@%p1 bra 	$L__BB12_2;
+
+	cvta.to.global.u64 	%rd2, %rd1;
+	mul.wide.s32 	%rd3, %r1, 4;
+	add.s64 	%rd4, %rd2, %rd3;
+	ld.global.f32 	%f1, [%rd4];
+	add.f32 	%f2, %f1, 0fBF800000;
+	st.global.f32 	[%rd4], %f2;
+
+$L__BB12_2:
+	ret;
+
+}
+	// .globl	_Z22vec_multiply_2_withidxPfii
+.visible .entry _Z22vec_multiply_2_withidxPfii(
+	.param .u64 _Z22vec_multiply_2_withidxPfii_param_0,
+	.param .u32 _Z22vec_multiply_2_withidxPfii_param_1,
+	.param .u32 _Z22vec_multiply_2_withidxPfii_param_2
+)
+{
+	.reg .pred 	%p<4>;
+	.reg .f32 	%f<3>;
+	.reg .b32 	%r<7>;
+	.reg .b64 	%rd<5>;
+
+
+	ld.param.u64 	%rd1, [_Z22vec_multiply_2_withidxPfii_param_0];
+	ld.param.u32 	%r2, [_Z22vec_multiply_2_withidxPfii_param_1];
+	ld.param.u32 	%r3, [_Z22vec_multiply_2_withidxPfii_param_2];
+	mov.u32 	%r4, %ctaid.x;
+	mov.u32 	%r5, %ntid.x;
+	mov.u32 	%r6, %tid.x;
+	mad.lo.s32 	%r1, %r4, %r5, %r6;
+	setp.lt.s32 	%p1, %r1, %r2;
+	setp.ge.s32 	%p2, %r1, %r3;
+	or.pred  	%p3, %p1, %p2;
+	@%p3 bra 	$L__BB13_2;
+
+	cvta.to.global.u64 	%rd2, %rd1;
+	mul.wide.s32 	%rd3, %r1, 4;
+	add.s64 	%rd4, %rd2, %rd3;
+	ld.global.f32 	%f1, [%rd4];
+	add.f32 	%f2, %f1, %f1;
+	st.global.f32 	[%rd4], %f2;
+
+$L__BB13_2:
+	ret;
+
+}
+	// .globl	_Z17vec_add_3_withidxPfii
+.visible .entry _Z17vec_add_3_withidxPfii(
+	.param .u64 _Z17vec_add_3_withidxPfii_param_0,
+	.param .u32 _Z17vec_add_3_withidxPfii_param_1,
+	.param .u32 _Z17vec_add_3_withidxPfii_param_2
+)
+{
+	.reg .pred 	%p<4>;
+	.reg .f32 	%f<3>;
+	.reg .b32 	%r<7>;
+	.reg .b64 	%rd<5>;
+
+
+	ld.param.u64 	%rd1, [_Z17vec_add_3_withidxPfii_param_0];
+	ld.param.u32 	%r2, [_Z17vec_add_3_withidxPfii_param_1];
+	ld.param.u32 	%r3, [_Z17vec_add_3_withidxPfii_param_2];
+	mov.u32 	%r4, %ctaid.x;
+	mov.u32 	%r5, %ntid.x;
+	mov.u32 	%r6, %tid.x;
+	mad.lo.s32 	%r1, %r4, %r5, %r6;
+	setp.lt.s32 	%p1, %r1, %r2;
+	setp.ge.s32 	%p2, %r1, %r3;
+	or.pred  	%p3, %p1, %p2;
+	@%p3 bra 	$L__BB14_2;
+
+	cvta.to.global.u64 	%rd2, %rd1;
+	mul.wide.s32 	%rd3, %r1, 4;
+	add.s64 	%rd4, %rd2, %rd3;
+	ld.global.f32 	%f1, [%rd4];
+	add.f32 	%f2, %f1, 0f40400000;
+	st.global.f32 	[%rd4], %f2;
+
+$L__BB14_2:
+	ret;
+
+}
 

@@ -1,5 +1,0 @@
-stream_tests:
-  - name: "StreamCreateDefault"
-    flag: "CU_STREAM_DEFAULT"
-  - name: "StreamCreateNonBlocking"
-    flag: "CU_STREAM_NON_BLOCKING"

@@ -69,3 +69,38 @@ __global__ void div_kernel(float* a, float* b, float* c, int n) {
         c[i] = a[i] / b[i];
     }
 }
+
+__global__ void vec_multiply_2(float* data, int size) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < size) {
+        data[i] *= 2.0f;
+    }
+}
+
+__global__ void vec_add_3(float* data, int size) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < size) {
+        data[i] += 3.0f;
+    }
+}
+
+__global__ void vec_sub_1(float* data, int size) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < size) {
+        data[i] -= 1.0f;
+    }
+}
+
+__global__ void vec_multiply_2_withidx(float* data, int startIndex, int endIndex) {
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tid >= startIndex && tid < endIndex) {
+        data[tid] *= 2.0f;
+    }
+}
+
+__global__ void vec_add_3_withidx(float* data, int startIndex, int endIndex) {
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tid >= startIndex && tid < endIndex) {
+        data[tid] += 3.0f;
+    }
+}
