@@ -2,7 +2,7 @@
 #include <string.h>
 #include <cmath>
 #include <iostream>
-#include <gtest/gtest.h>
+// #include <gtest/gtest.h>
 
 const int NUM_TASKS = 4;
 int NUM_ELEMENTS = 1000000;
@@ -100,7 +100,7 @@ void check_result(float* a,
 }
 
 
-TEST(COMBINE, 1_stream_n_event) {
+int main() {
     init_cuda();
 
     float *h_a[NUM_TASKS], *h_b[NUM_TASKS],
@@ -125,8 +125,7 @@ TEST(COMBINE, 1_stream_n_event) {
         CUmodule module;
         CUresult result =
             cuModuleLoad(&module,
-                         "/data/system/yunfan/cuda_api/common/cuda_kernel/"
-                         "cuda_kernel.ptx");
+                         "C:\\Users\\zhouf\\Desktop\\cuda_workspace\\cuda_api\\common\\cuda_kernel\\cuda_kernel.ptx");
 
         result =
             cuModuleGetFunction(&add_kernel, module, "_Z10add_kernelPfS_S_i");
@@ -179,4 +178,5 @@ TEST(COMBINE, 1_stream_n_event) {
         check_cuda(cuEventDestroy(event));
     }
     cleanup_cuda();
+    return 0;
 }

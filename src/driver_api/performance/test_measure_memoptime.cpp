@@ -1,72 +1,74 @@
-// #include "memory_tests.h"
+#include <cuda.h>
+#include <iostream>
+#include <chrono>
+#include <vector>
 
-// TEST_F(CuMemTest, PerformanceBasicMeasureAllocHostTime) {
-//     const size_t alloc_size =
-//         1024 * 1024 * sizeof(int);  // 1 MB
+// Create a function type for our tests
+typedef void (*transferTestFunc)(CUdeviceptr, void*, size_t);
 
-//     CUstream s1;
-//     cuStreamCreate(&s1, 0);
+// Test scenarios
+void testHtoD(CUdeviceptr devPtr, void* hostPtr, size_t size) {
+    cuMemcpyHtoD(devPtr, hostPtr, size);
+}
 
-//     CUevent start_e, end_e;
-//     cuEventCreate(&start_e, 0);
-//     cuEventCreate(&end_e, 0);
+void testDtoH(CUdeviceptr devPtr, void* hostPtr, size_t size) {
+    cuMemcpyDtoH(hostPtr, devPtr, size);
+}
 
-//     cuEventRecord(start_e,s1);
+// Add more test scenarios here...
 
-//     int* p;
-//     cuMemAllocHost((void**)&p, alloc_size);
+// Test runner
+void runTest(transferTestFunc test, const char* testName, CUdeviceptr devPtr, void* hostPtr, size_t size) {
+    // Record start time
+    auto start = std::chrono::high_resolution_clock::now();
 
-//     cuEventRecord(end_e, s1);
-//     cuEventSynchronize(end_e);
+    // Run the test
+    test(devPtr, hostPtr, size);
 
-//     float elapsedTime;
-//     cuEventElapsedTime(&elapsedTime, start_e, end_e);
+    // Record end time
+    auto end = std::chrono::high_resolution_clock::now();
 
-//     cuMemFreeHost(p);
+    // Compute the difference between the two times in milliseconds
+    std::chrono::duration<double, std::milli> diff = end - start;
 
-//     cuEventDestroy(start_e);
-//     cuEventDestroy(end_e);
+    std::cout << testName << " transferred " << size << " bytes in "
+              << diff.count() << " ms" << std::endl;
+}
 
-//     std::cout << "cuMemAllocHost Alloc Time: " << elapsedTime << " ms"
-//               << std::endl;
-// }
+int main() {
+    CUdevice dev;
+    CUcontext ctx;
+    CUdeviceptr devPtr;
+    void* hostPtr;
+    size_t size = 1024 * 1024;  // 1 MiB
 
-// TEST_F(CuMemTest, PerformanceHighLoad) {
-//     const int ths_num = 4;
-//     const size_t alloc_size = 1024 * 1024;  // 1 MB
-//     const int alloc_interval = 100;         // ms
-//     const int test_duration = 5000;         // ms
+    // Initialize CUDA
+    cuInit(0);
+    cuDeviceGet(&dev, 0);
+    cuCtxCreate(&ctx, 0, dev);
 
-//     std::vector<int*> alloc_p;
+    // Allocate host and device memory
+    cuMemAlloc(&devPtr, size);
+    cuMemAllocHost(&hostPtr, size);
 
-//     std::vector<std::thread> threads;
-//     for (int i = 0; i < ths_num; ++i) {
-//         threads.emplace_back([&, i]() {
-//             while (true) {
-//                 int* p;
-//                 cuMemAllocHost((void**)&p, alloc_size);
+    // Define the tests
+    std::vector<std::pair<transferTestFunc, const char*>> tests = {
+        {testHtoD, "Host to Device"},
+        {testDtoH, "Device to Host"}
+        // Add more tests here...
+    };
 
-//                 performOperations(p, alloc_size);
-//                 alloc_p.push_back(p);
-//                 std::this_thread::sleep_for(
-//                     std::chrono::milliseconds(alloc_interval));
+    // Run the tests
+    for (auto& test : tests) {
+        runTest(test.first, test.second, devPtr, hostPtr, size);
+    }
 
-//                 cuMemFreeHost(p);
-//             }
-//         });
-//     }
+    // Free host and device memory
+    cuMemFreeHost(hostPtr);
+    cuMemFree(devPtr);
 
+    // Destroy CUDA context
+    cuCtxDestroy(ctx);
 
-//     std::this_thread::sleep_for(std::chrono::milliseconds(test_duration));
-
-//     for (auto& thread : threads) {
-//         thread.join();
-//     }
-
-//     std::cout << "Number of Allocations: " << alloc_p.size()
-//               << std::endl;
-
-//     for (auto& p : alloc_p) {
-//         cuMemFreeHost(p);
-//     }
-// }
+    return 0;
+}
