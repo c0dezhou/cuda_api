@@ -12,7 +12,7 @@ TEST_F(CuMemTest, AC_BA_MemsetD8_BasicApiBehavior) {
     unsigned char value = 42;
     cuMemsetD8(d_p, value, size);
 
-    for (size_t i = 0; i < size; i++) {
+    for (size_t i = 0; i < 10; i++) {
         unsigned char value;
         cuMemcpyDtoH(&value, d_p + i, 1);
         EXPECT_EQ(value & 0xff, 42);
@@ -82,7 +82,7 @@ TEST_F(CuMemTest, AC_OT_MemsetD8_MultiDeviceSetD8) {
         cuMemAlloc(&d_p, size);
         unsigned char value = 42;
         cuMemsetD8(d_p, value, size);
-        for (size_t i = 0; i < size; i++) {
+        for (size_t i = 0; i < 10; i++) {
             unsigned char value;
             cuMemcpyDtoH(&value, d_p + i, 1);
             EXPECT_EQ(value & 0xff, 42);

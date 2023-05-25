@@ -17,12 +17,23 @@ void compareOPerations(int* p, size_t alloc_size);
 long long getSystemMemoryUsage();
 float calculateElapsedTime(const CUevent& start, const CUevent& stop);
 void get_random(int* num, int a, int b);
-bool __check_cuda_error(CUresult code,
+bool __checkError_error(CUresult code,
                         const char* op,
                         const char* file,
                         int line);
+bool verifyResult(const std::vector<float>& data,
+                  float expectedValue,
+                  int startIndex,
+                  int endIndex);
+bool verifyResult(const std::vector<float>& data, float expectedValue);
+bool verifyResult(const std::vector<float>& h_A,
+                  const std::vector<float>& h_B,
+                  const std::vector<float>& h_C);
 
-#define checkError(op) __check_cuda_error((op), #op, __FILE__, __LINE__)
+void cpuComputation(std::vector<float>& data);
+
+#define checkError(op) __checkError_error((op), #op, __FILE__, __LINE__)
+#define MB 1024 * 1024
 
 template <typename T>
 void testAllocHost(T value) {

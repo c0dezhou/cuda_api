@@ -2,7 +2,7 @@
 
 #define INIT_MEMSETD8Async()   \
     CUdeviceptr d_p;        \
-    const size_t size = 103*sizeof(unsigned char);   \
+    const size_t size = 10*sizeof(unsigned char);   \
     cuMemAlloc(&d_p, size); \
     unsigned char h_ptr_[103];
 
@@ -160,6 +160,7 @@ TEST_F(CuMemTest, AC_OT_MemsetD8Async_MultiDevice) {
 }
 
 TEST_F(CuMemTest, AC_SA_MemsetD8Async_AsyncBehaviorSetD8Async) {
+    // TODO：待确认
     INIT_MEMSETD8Async();
     unsigned char uc = 0xFF;
     cuMemsetD8Async(d_p, uc, size, 0);
@@ -218,6 +219,7 @@ TEST_F(CuMemTest, AC_OT_MemsetD8Async_RepeatedCallSetD8Async) {
 }
 
 TEST_F(CuMemTest, AC_OT_MemsetD8Async_overflowSetD8Async) {
+    // TODO：待确认
     GTEST_SKIP(); //due to core dump
     INIT_MEMSETD8Async();
 

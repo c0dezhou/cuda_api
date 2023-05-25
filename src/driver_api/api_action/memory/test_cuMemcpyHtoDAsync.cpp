@@ -92,16 +92,17 @@ TEST_F(CuMemTest, AC_EG_MemcpyHtoDAsync_UnalignedAddr) {
 }
 
 TEST_F(CuMemTest, AC_SA_MemcpyHtoDAsync_AsyncBehavior) {
+    // TODO：待确认
     GTEST_SKIP();  // due to core dump
     CUstream stream1, stream2;
     cuStreamCreate(&stream1, 0);
     cuStreamCreate(&stream2, 0);
 
     CUdeviceptr d_p;
-    void* h_p;
+    char* h_p;
     const size_t size = 1024;
 
-    for (size_t i = 0; i < size; i++) {
+    for (size_t i = 0; i < size/sizeof(char); i++) {
         ((char*)h_p)[i] = i % 256;
     }
     cuMemcpyHtoDAsync(d_p, h_p, size, stream1);
@@ -122,7 +123,7 @@ TEST_F(CuMemTest, AC_SA_MemcpyHtoDAsync_AsyncBehavior) {
     EXPECT_EQ(error1, CUDA_SUCCESS);
     EXPECT_EQ(error2, CUDA_SUCCESS);
 
-    for (size_t i = 0; i < size; i++) {
+    for (size_t i = 0; i < size/sizeof(char); i++) {
         char value = ((char*)h_p)[i];
         EXPECT_EQ(value, i % 256);
     }
@@ -132,6 +133,7 @@ TEST_F(CuMemTest, AC_SA_MemcpyHtoDAsync_AsyncBehavior) {
 }
 
 TEST_F(CuMemTest, AC_OT_MemcpyHtoDAsync_MultiDevice) {
+    // TODO：待确认
     INIT_MEMH2DAsync();
     int deviceCount;
     cuDeviceGetCount(&deviceCount);
@@ -146,7 +148,7 @@ TEST_F(CuMemTest, AC_OT_MemcpyHtoDAsync_MultiDevice) {
         cuStreamCreate(&streami, 0);
         cuMemcpyHtoDAsync(d_p, h_p, size, streami);
         cuStreamSynchronize(streami);
-        for (size_t i = 0; i < size; i++) {
+        for (size_t i = 0; i < size/sizeof(char); i++) {
             char value;
             cuMemcpyDtoH(&value, d_p + i, 1);
             EXPECT_EQ(value & 0xff, i % 256);
@@ -161,7 +163,7 @@ TEST_F(CuMemTest, AC_OT_MemcpyHtoDAsync_MultiDevice) {
 
 TEST_F(CuMemTest, AC_OT_MemcpyHtoDAsync_LoopH2DAsync) {
     INIT_MEMH2DAsync();
-    for (size_t i = 0; i < size; i++) {
+    for (size_t i = 0; i < size/sizeof(char); i++) {
         ((char*)h_p)[i] = i % 256;
     }
     const int loopCount = 10;
@@ -169,7 +171,7 @@ TEST_F(CuMemTest, AC_OT_MemcpyHtoDAsync_LoopH2DAsync) {
         cuMemcpyHtoDAsync(d_p, h_p, size, stream);
     }
     cuStreamSynchronize(stream);
-    for (size_t i = 0; i < size; i++) {
+    for (size_t i = 0; i < size/sizeof(char); i++) {
         char value;
         cuMemcpyDtoH(&value, d_p + i, 1);
         // & 一下0xff，不然是字符串'0xxx'

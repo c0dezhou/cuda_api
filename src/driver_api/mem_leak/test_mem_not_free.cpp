@@ -1,24 +1,36 @@
-#include <cuda.h>
-#include <iostream>
+#include "test_utils.h"
 
-int main() {
+#define MAX_ALLOCATIONS 10
+
+TEST(MEMLEAK, mem_not_free) {
     CUdevice dev;
     CUcontext ctx;
-    CUdeviceptr d_A;
-    size_t size = 1000;
+    void* hostMem[MAX_ALLOCATIONS];
     size_t free_mem_begin, total_mem, free_mem_end;
 
     cuInit(0);
     cuDeviceGet(&dev, 0);
-    cuMemGetInfo(&free_mem_begin, &total_mem); // get initial free memory
     cuCtxCreate(&ctx, 0, dev);
-    cuMemAlloc(&d_A, size * sizeof(float));
 
-    // cuMemFree(d_A); // Uncomment this to free memory
-    cuMemGetInfo(&free_mem_end, &total_mem); // get final free memory
+    cuMemGetInfo(&free_mem_begin, &total_mem);
 
-    std::cout << "Memory usage: " << (free_mem_begin - free_mem_end) / 1024.0 / 1024.0 << " MB\n";
+    for (int i = 0; i < MAX_ALLOCATIONS; i++) {
+        cuMemAlloc((CUdeviceptr*)&hostMem[i], 1024* MB);
+    }
+
+    cuMemGetInfo(&free_mem_end, &total_mem);
+    std::cout << "Memory usage after allocating " << MAX_ALLOCATIONS
+              << " host memory blocks: "
+              << (free_mem_begin - free_mem_end) / 1024.0 / 1024.0 << " MB\n";
+
+    // Free host memory
+    for (int i = 0; i < MAX_ALLOCATIONS; i++) {
+        cuMemFree((CUdeviceptr)hostMem[i]);
+    }
+
+    cuMemGetInfo(&free_mem_end, &total_mem);  // get final free memory
+    std::cout << "Memory usage after freeing device memory blocks: "
+              << (free_mem_begin - free_mem_end) / 1024.0 / 1024.0 << " MB\n";
 
     cuCtxDestroy(ctx);
-    return 0;
 }

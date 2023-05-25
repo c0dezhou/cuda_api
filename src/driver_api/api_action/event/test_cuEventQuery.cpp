@@ -13,6 +13,7 @@ TEST_F(CuEventTest, AC_BA_EventQuery_QueryCompletedEvent) {
 }
 
 TEST_F(CuEventTest, AC_INV_EventQuery_QueryIncompleteEvent) {
+    // TODO: 待确认
     GTEST_SKIP(); // due to core dump
     CUevent event_;
     result = cuEventQuery(event_);
@@ -20,6 +21,7 @@ TEST_F(CuEventTest, AC_INV_EventQuery_QueryIncompleteEvent) {
 }
 
 TEST_F(CuEventTest, AC_INV_EventQuery_QueryDestroyedEvent) {
+    // TODO: 待确认
     cuEventDestroy(event);
     result = cuEventQuery(event);
     EXPECT_EQ(CUDA_ERROR_INVALID_HANDLE, result);

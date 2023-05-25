@@ -1,8 +1,4 @@
-#include <cuda.h>
-#include <string.h>
-#include <cmath>
-#include <iostream>
-// #include <gtest/gtest.h>
+#include "test_utils.h"
 
 const int NUM_TASKS = 4;
 int NUM_ELEMENTS = 1000000;
@@ -10,35 +6,25 @@ const int BLOCK_SIZE = 256;
 
 CUstream single_stream;
 
-void check_cuda(CUresult result) {
-    if (result != CUDA_SUCCESS) {
-        const char* error;
-        cuGetErrorName(result, &error);
-        std::cerr << "CUDA error: " << error << std::endl;
-        exit(1);
-    }
-}
-
-
 #define init_cuda() \
-    check_cuda(cuInit(0));\
+    checkError(cuInit(0));\
     CUdevice device;\
-    check_cuda(cuDeviceGet(&device, 0));\
+    checkError(cuDeviceGet(&device, 0));\
     CUcontext context; \
-    check_cuda(cuCtxCreate(&context, 0, device)); \
-    check_cuda(cuStreamCreate(&single_stream, CU_STREAM_NON_BLOCKING));
+    checkError(cuCtxCreate(&context, 0, device)); \
+    checkError(cuStreamCreate(&single_stream, CU_STREAM_NON_BLOCKING));
 
 #define cleanup_cuda()                          \
-    check_cuda(cuStreamDestroy(single_stream)); \
-    check_cuda(cuCtxDestroy(context));
+    checkError(cuStreamDestroy(single_stream)); \
+    checkError(cuCtxDestroy(context));
 
 
 void init_host_memory(float** a, float** b, float** c, int n) {
-    check_cuda(
+    checkError(
         cuMemHostAlloc((void**)a, n * sizeof(float), CU_MEMHOSTALLOC_PORTABLE));
-    check_cuda(
+    checkError(
         cuMemHostAlloc((void**)b, n * sizeof(float), CU_MEMHOSTALLOC_PORTABLE));
-    check_cuda(
+    checkError(
         cuMemHostAlloc((void**)c, n * sizeof(float), CU_MEMHOSTALLOC_PORTABLE));
 
     for (int i = 0; i < n; i++) {
@@ -49,21 +35,21 @@ void init_host_memory(float** a, float** b, float** c, int n) {
 }
 
 void free_host_memory(float* a, float* b, float* c) {
-    check_cuda(cuMemFreeHost(a));
-    check_cuda(cuMemFreeHost(b));
-    check_cuda(cuMemFreeHost(c));
+    checkError(cuMemFreeHost(a));
+    checkError(cuMemFreeHost(b));
+    checkError(cuMemFreeHost(c));
 }
 
 void init_device_memory(float** d_a, float** d_b, float** d_c, int n) {
-    check_cuda(cuMemAlloc((CUdeviceptr*)d_a, n * sizeof(float)));
-    check_cuda(cuMemAlloc((CUdeviceptr*)d_b, n * sizeof(float)));
-    check_cuda(cuMemAlloc((CUdeviceptr*)d_c, n * sizeof(float)));
+    checkError(cuMemAlloc((CUdeviceptr*)d_a, n * sizeof(float)));
+    checkError(cuMemAlloc((CUdeviceptr*)d_b, n * sizeof(float)));
+    checkError(cuMemAlloc((CUdeviceptr*)d_c, n * sizeof(float)));
 }
 
 void free_device_memory(float* d_a, float* d_b, float* d_c) {
-    check_cuda(cuMemFree((CUdeviceptr)d_a));
-    check_cuda(cuMemFree((CUdeviceptr)d_b));
-    check_cuda(cuMemFree((CUdeviceptr)d_c));
+    checkError(cuMemFree((CUdeviceptr)d_a));
+    checkError(cuMemFree((CUdeviceptr)d_b));
+    checkError(cuMemFree((CUdeviceptr)d_c));
 }
 
 void check_result(float* a,
@@ -100,7 +86,7 @@ void check_result(float* a,
 }
 
 
-int main() {
+TEST(COMBINE, 1_stream_n_event) {
     init_cuda();
 
     float *h_a[NUM_TASKS], *h_b[NUM_TASKS],
@@ -113,10 +99,10 @@ int main() {
     }
 
     for (int i = 0; i < NUM_TASKS; i++) {
-        check_cuda(cuMemcpyHtoDAsync((CUdeviceptr)(d_a[i]), h_a[i],
+        checkError(cuMemcpyHtoDAsync((CUdeviceptr)(d_a[i]), h_a[i],
                                      NUM_ELEMENTS * sizeof(float),
                                      single_stream));
-        check_cuda(cuMemcpyHtoDAsync((CUdeviceptr)(d_b[i]), h_b[i],
+        checkError(cuMemcpyHtoDAsync((CUdeviceptr)(d_b[i]), h_b[i],
                                      NUM_ELEMENTS * sizeof(float),
                                      single_stream));
 
@@ -125,7 +111,8 @@ int main() {
         CUmodule module;
         CUresult result =
             cuModuleLoad(&module,
-                         "C:\\Users\\zhouf\\Desktop\\cuda_workspace\\cuda_api\\common\\cuda_kernel\\cuda_kernel.ptx");
+                         "/data/system/yunfan/cuda_api/common/cuda_kernel/"
+                         "cuda_kernel.ptx");
 
         result =
             cuModuleGetFunction(&add_kernel, module, "_Z10add_kernelPfS_S_i");
@@ -160,23 +147,22 @@ int main() {
 
         int grid_size = (NUM_ELEMENTS + BLOCK_SIZE - 1) / BLOCK_SIZE;
         void* kernel_args[] = {&d_a[i], &d_b[i], &d_c[i], &NUM_ELEMENTS};
-        check_cuda(cuLaunchKernel(kernel, grid_size, 1, 1, BLOCK_SIZE, 1, 1, 0,
+        checkError(cuLaunchKernel(kernel, grid_size, 1, 1, BLOCK_SIZE, 1, 1, 0,
                                   single_stream, kernel_args, NULL));
 
-        check_cuda(cuMemcpyDtoHAsync(h_c[i], (CUdeviceptr)(d_c[i]),
+        checkError(cuMemcpyDtoHAsync(h_c[i], (CUdeviceptr)(d_c[i]),
                                      NUM_ELEMENTS * sizeof(float),
                                      single_stream));
 
         CUevent event;
-        check_cuda(cuEventCreate(&event, CU_EVENT_DEFAULT));
-        check_cuda(cuEventRecord(event, single_stream));
+        checkError(cuEventCreate(&event, CU_EVENT_DEFAULT));
+        checkError(cuEventRecord(event, single_stream));
 
-        check_cuda(cuEventSynchronize(event));
+        checkError(cuEventSynchronize(event));
 
         check_result(h_a[i], h_b[i], h_c[i], NUM_ELEMENTS, kernel_name);
 
-        check_cuda(cuEventDestroy(event));
+        checkError(cuEventDestroy(event));
     }
     cleanup_cuda();
-    return 0;
 }

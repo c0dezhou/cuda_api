@@ -1,8 +1,4 @@
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <iostream>
-#include <thread>
-#include <vector>
+#include "test_utils.h"
 
 #define NUM_THREADS 4
 #define DATA_SIZE 1024
@@ -30,7 +26,7 @@ void processThread(CUdeviceptr d_data,
                             (endIndex - startIndex) * sizeof(float));
 }
 
-int main() {
+TEST(MthsTest_, MTH_Single_Device_proceed_parallel) {
     CUresult cuResult;
     CUcontext context;
     CUdevice device;
@@ -84,5 +80,4 @@ int main() {
     cuResult = cuMemFree(d_data);
     cuResult = cuModuleUnload(module);
     cuResult = cuCtxDestroy(context);
-    return 0;
 }

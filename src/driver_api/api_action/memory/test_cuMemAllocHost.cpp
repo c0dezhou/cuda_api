@@ -30,12 +30,14 @@ TEST_F(CuMemTest, AC_INV_MemAllocHost_Largesize) {
 }
 
 TEST_F(CuMemTest, AC_INV_MemAllocHost_Nullptr) {
+    // TODO：待确认
     const int* pInvalidPtr = nullptr;
     CUresult res = cuMemAllocHost((void**)&pInvalidPtr, sizeof(int));
     EXPECT_EQ(res, CUDA_ERROR_INVALID_VALUE);
 }
 
 TEST_F(CuMemTest, AC_INV_MemAllocHost_Overbyte) {
+    // TODO：待确认
     int* pIncorrectSize;
     // 不匹配bytesize
     res = cuMemAllocHost((void**)&pIncorrectSize, sizeof(float) + 1);

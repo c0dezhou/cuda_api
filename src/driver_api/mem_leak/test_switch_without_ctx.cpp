@@ -1,9 +1,8 @@
-#include <cuda.h>
-#include <iostream>
+#include "test_utils.h"
 
-#define MAX_ITERATIONS 100
+#define MAX_ITERATIONS 1000
 
-int main() {
+TEST(MEMLEAK, switch_without_ctx_switch) {
     CUdevice dev1, dev2;
     CUcontext ctx1, ctx2;
 
@@ -13,7 +12,7 @@ int main() {
     cuCtxCreate(&ctx1, 0, dev1);
     size_t free_mem_begin, total_mem, free_mem_end;
 
-    cuMemGetInfo(&free_mem_begin, &total_mem); // get initial free memory
+    cuMemGetInfo(&free_mem_begin, &total_mem);
 
     cuDeviceGet(&dev2, 1);
     cuCtxCreate(&ctx2, 0, dev2);
@@ -27,11 +26,10 @@ int main() {
     }
 
     cuCtxSetCurrent(ctx1);
-    cuMemGetInfo(&free_mem_end, &total_mem); // get final free memory
+    cuMemGetInfo(&free_mem_end, &total_mem);
     std::cout << "Memory usage after context switching: " << (free_mem_begin - free_mem_end) / 1024.0 / 1024.0 << " MB\n";
 
     cuCtxDestroy(ctx2);
     cuCtxDestroy(ctx1);
 
-    return 0;
 }

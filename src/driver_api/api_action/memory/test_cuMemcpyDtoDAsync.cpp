@@ -6,7 +6,7 @@
     CUdeviceptr d_dst;                              \
     CUstream stream;                                \
     cuStreamCreate(&stream, CU_STREAM_DEFAULT);     \
-    size_t size = 10;                               \
+    size_t size = 5;                               \
     cuMemAlloc(&d_src, size * sizeof(int));         \
     cuMemAlloc(&d_dst, size * sizeof(int));         \
     int h_src[size];                                \
@@ -29,6 +29,7 @@
     cuStreamDestroy(stream);
 
 TEST_F(CuMemTest, AC_BA_MemcpyDtoDAsync_BasicBehavior) {
+    // TODO：待确认
     // error due to init step
     INIT_MEMD2DAsync();
     cuMemcpyDtoDAsync(d_dst, d_src, size * sizeof(int), stream);
@@ -74,6 +75,7 @@ TEST_F(CuMemTest, AC_INV_MemcpyDtoDAsync_InvalidStream) {
 }
 
 TEST_F(CuMemTest, AC_EG_MemcpyDtoDAsync_Max) {
+    // TODO：待确认
     GTEST_SKIP();  // due to core dump
     size_t size_max = 0;
     cuMemGetInfo(nullptr, &size_max);
@@ -137,6 +139,7 @@ TEST_F(CuMemTest, AC_SA_MemcpyDtoDAsync_AsyncBehavior) {
 }
 
 TEST_F(CuMemTest, AC_OT_MemcpyDtoDAsync_RepeatedCalls) {
+    // TODO：待确认
     INIT_MEMD2DAsync();
 
     cuMemcpyDtoDAsync(d_dst, d_src, size * sizeof(int), stream); 

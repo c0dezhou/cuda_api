@@ -98,6 +98,7 @@ TEST_F(CuEventTest, AC_INV_EventElapsedTime_CalculateElapsedTimeSameEvent) {
 }
 
 TEST_F(CuEventTest, AC_BA_EventElapsedTime_CompareToHostRecord) {
+    // TODO: 待确认
     CUstream stream;
     cuStreamCreate(&stream, CU_STREAM_DEFAULT);
 

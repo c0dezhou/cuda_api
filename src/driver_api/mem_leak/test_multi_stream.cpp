@@ -1,9 +1,8 @@
-#include <cuda.h>
-#include <iostream>
+#include "test_utils.h"
 
-#define MAX_STREAMS 100
+#define MAX_STREAMS 100000
 
-int main() {
+TEST(MEMLEAK, multi_stream) {
     CUdevice dev;
     CUcontext ctx;
     CUstream cuStream[MAX_STREAMS];
@@ -13,23 +12,21 @@ int main() {
     cuDeviceGet(&dev, 0);
     cuCtxCreate(&ctx, 0, dev);
 
-    cuMemGetInfo(&free_mem_begin, &total_mem); // get initial free memory
+    cuMemGetInfo(&free_mem_begin, &total_mem);
 
     for (int i = 0; i < MAX_STREAMS; i++) {
         cuStreamCreate(&cuStream[i], 0);
     }
 
-    cuMemGetInfo(&free_mem_end, &total_mem); // get final free memory
+    cuMemGetInfo(&free_mem_end, &total_mem);
     std::cout << "Memory usage after creating " << MAX_STREAMS << " streams: " << (free_mem_begin - free_mem_end) / 1024.0 / 1024.0 << " MB\n";
 
-    // Destroy streams
     for (int i = 0; i < MAX_STREAMS; i++) {
         cuStreamDestroy(cuStream[i]);
     }
 
-    cuMemGetInfo(&free_mem_end, &total_mem); // get final free memory
+    cuMemGetInfo(&free_mem_end, &total_mem);
     std::cout << "Memory usage after destroying streams: " << (free_mem_begin - free_mem_end) / 1024.0 / 1024.0 << " MB\n";
 
     cuCtxDestroy(ctx);
-    return 0;
 }

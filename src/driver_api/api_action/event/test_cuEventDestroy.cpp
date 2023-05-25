@@ -49,6 +49,7 @@ TEST_F(CuEventTest, AC_INV_EventDestroy_DestroyEventUsedInWait) {
 }
 
 TEST_F(CuEventTest, AC_INV_EventDestroy_DestroyEventByAnotherStream) {
+    // TODO: 待确认
     CUstream stream1, stream2;
 
     cuStreamCreate(&stream1, CU_STREAM_DEFAULT);

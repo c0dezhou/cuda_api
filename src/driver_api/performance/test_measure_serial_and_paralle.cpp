@@ -1,13 +1,9 @@
-#include <cuda.h>
-#include <iostream>
-#include <chrono>
-#include <vector>
-#include <thread>
+#include "test_utils.h"
 
 #define SIZE 1024 * 1024  // 1 MiB
 #define NUM_STREAMS 4
 
-int main() {
+TEST(PERF, measure_serial_and_parallel) {
     CUdevice dev;
     CUcontext ctx;
     CUdeviceptr devPtr;
@@ -20,7 +16,6 @@ int main() {
     cuMemAlloc(&devPtr, SIZE * NUM_STREAMS);
     cuMemAllocHost(&hostPtr, SIZE * NUM_STREAMS);
 
-    // Sequential transfer
     auto start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < NUM_STREAMS; i++) {
         cuMemcpyHtoD(devPtr + i * SIZE, (char*)hostPtr + i * SIZE, SIZE);
@@ -29,14 +24,12 @@ int main() {
     std::chrono::duration<double, std::milli> diff = end - start;
     std::cout << "Sequential transfer took " << diff.count() << " ms" << std::endl;
 
-    // Concurrent transfer using streams
     start = std::chrono::high_resolution_clock::now();
     std::vector<CUstream> streams(NUM_STREAMS);
     for (int i = 0; i < NUM_STREAMS; i++) {
         cuStreamCreate(&streams[i], 0);
         cuMemcpyHtoDAsync(devPtr + i * SIZE, (char*)hostPtr + i * SIZE, SIZE, streams[i]);
     }
-    // Wait for all streams to finish
     for (int i = 0; i < NUM_STREAMS; i++) {
         cuStreamSynchronize(streams[i]);
         cuStreamDestroy(streams[i]);
@@ -49,5 +42,4 @@ int main() {
     cuMemFree(devPtr);
     cuCtxDestroy(ctx);
 
-    return 0;
 }

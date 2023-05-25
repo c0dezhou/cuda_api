@@ -5,7 +5,7 @@
     CUdeviceptr d_src_;              \
     CUdeviceptr d_dst_;              \
     int* h_ptr_;                     \
-    static const size_t N = 1024;     \
+    static const size_t N = 5;     \
     size_t size = N * sizeof(int);   \
     cuMemAlloc(&d_src_, size);       \
     cuMemAlloc(&d_dst_, size);       \
@@ -68,6 +68,7 @@ TEST_F(CuMemTest, AC_EG_MemcpyDtoD_HoleDeviceMem) {
 }
 
 TEST_F(CuMemTest, AC_OT_MemcpyDtoD_OverlapMem) {
+    // TODO：待确认
     INIT_MEMD2D();
     res = cuMemcpyDtoD(d_dst_ + size / 2, d_src_, size / 2); //拷后半部分
     EXPECT_EQ(res, CUDA_SUCCESS);

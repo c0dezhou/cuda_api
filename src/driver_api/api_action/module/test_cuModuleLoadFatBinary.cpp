@@ -1,6 +1,7 @@
 #include "module_tests.h"
 
 TEST_F(cuModuleTest, AC_BA_ModuleLoadFatBinary_LoadValidFatBinary) {
+    // TODO：待确认
     const void* fatCubin = fatbin_path;
     CUresult res = cuModuleLoadFatBinary(&module_fatbin, fatCubin);
 
@@ -30,6 +31,7 @@ TEST_F(cuModuleTest, AC_INV_ModuleLoadFatBinary_LoadNullModule) {
 }
 
 TEST_F(cuModuleTest, AC_INV_ModuleLoadFatBinary_LoadMismatchedFatBinary) {
+    // TODO：待确认
     // TODO: 一个不匹配的fat binary对象，它不包含当前设备的目标架构
     const void* fatCubin = "";
     CUresult res = cuModuleLoadFatBinary(&module_fatbin, fatCubin);
@@ -37,6 +39,7 @@ TEST_F(cuModuleTest, AC_INV_ModuleLoadFatBinary_LoadMismatchedFatBinary) {
 }
 
 TEST_F(cuModuleTest, AC_OT_ModuleLoadFatBinary_LoadRepeatedFatBinary) {
+    // TODO：待确认
     const void* fatCubin = fatbin_path;
     CUresult res = cuModuleLoadFatBinary(&module_fatbin, fatCubin);
     EXPECT_EQ(CUDA_SUCCESS, res);

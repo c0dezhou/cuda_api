@@ -1,9 +1,8 @@
-#include <cuda.h>
-#include <iostream>
+#include "test_utils.h"
 
-#define MAX_MODULES 10
+#define MAX_MODULES 1000
 
-int main() {
+TEST(MEMLEAK, empty_ptx) {
     CUdevice dev;
     CUcontext ctx;
     CUmodule cuModule[MAX_MODULES];
@@ -13,23 +12,23 @@ int main() {
     cuDeviceGet(&dev, 0);
     cuCtxCreate(&ctx, 0, dev);
 
-    cuMemGetInfo(&free_mem_begin, &total_mem); // get initial free memory
+    cuMemGetInfo(&free_mem_begin, &total_mem);
 
     for (int i = 0; i < MAX_MODULES; i++) {
-        cuModuleLoad(&cuModule[i], "empty.ptx");
+        cuModuleLoad(
+            &cuModule[i],
+            "/data/system/yunfan/cuda_api/common/cuda_kernel/cuda_kernel.ptx");
     }
 
-    cuMemGetInfo(&free_mem_end, &total_mem); // get final free memory
+    cuMemGetInfo(&free_mem_end, &total_mem);
     std::cout << "Memory usage after loading " << MAX_MODULES << " modules: " << (free_mem_begin - free_mem_end) / 1024.0 / 1024.0 << " MB\n";
 
-    // Unload modules
     for (int i = 0; i < MAX_MODULES; i++) {
         cuModuleUnload(cuModule[i]);
     }
 
-    cuMemGetInfo(&free_mem_end, &total_mem); // get final free memory
+    cuMemGetInfo(&free_mem_end, &total_mem);
     std::cout << "Memory usage after unloading modules: " << (free_mem_begin - free_mem_end) / 1024.0 / 1024.0 << " MB\n";
 
     cuCtxDestroy(ctx);
-    return 0;
 }

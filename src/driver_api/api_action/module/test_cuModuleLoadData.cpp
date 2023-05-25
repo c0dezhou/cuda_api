@@ -1,6 +1,7 @@
 #include "module_tests.h"
 
 TEST_F(cuModuleTest, AC_BA_ModuleLoadData_BasicBehavior) {
+    // TODO：待确认
     FILE* fp = fopen(fname_sm75, "rb");
     EXPECT_NE(fp, nullptr);
     fseek(fp, 0, SEEK_END);
@@ -69,6 +70,7 @@ TEST_F(cuModuleTest, AC_BA_ModuleLoadData_BasicBehavior) {
 }
 
 TEST_F(cuModuleTest, AC_INV_ModuleLoadData_InvalidImag) {
+    // TODO：待确认
     GTEST_SKIP(); // due to coredump
     CUmodule module;
     CUresult res = cuModuleLoadData(&module, nullptr);

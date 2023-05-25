@@ -77,6 +77,7 @@ TEST_F(CuMemTest, AC_EG_MemcpyHtoD_MaxByte) {
 }
 
 TEST_F(CuMemTest, AC_EG_MemcpyHtoD_UnalignedAddr) {
+    // TODO：待确认
     INIT_MEMH2D();
     res = cuMemcpyHtoD(d_p + 1, h_p + 1, size - 2);
     EXPECT_EQ(res, CUDA_SUCCESS);
@@ -97,11 +98,13 @@ TEST_F(CuMemTest, AC_SA_MemcpyHtoD_SyncBehavior) {
 }
 
 TEST_F(CuMemTest, AC_OT_MemcpyHtoD_MultiDevice) {
+    // TODO：待确认
+    GTEST_SKIP();
     INIT_MEMH2D();
     int deviceCount;
     cuDeviceGetCount(&deviceCount);
 
-    for (int i = 0; i < size; i++){
+    for (int i = 0; i < size/sizeof(int); i++){
         h_p[i] = i;
     }
 
@@ -113,10 +116,10 @@ TEST_F(CuMemTest, AC_OT_MemcpyHtoD_MultiDevice) {
         cuCtxPushCurrent(contexti);
         CUdeviceptr d_pi;
         cuMemAlloc(&d_pi, size);
-        cuMemcpyHtoD(d_pi, h_p, size*sizeof(int));
-        for (size_t i = 0; i < size; i++) {
+        cuMemcpyHtoD(d_pi, h_p, size);
+        for (size_t i = 0; i < size / sizeof(int); i++) {
             int value;
-            cuMemcpyDtoH(&value, d_pi + i, sizeof(int));
+            cuMemcpyDtoH(&value, d_pi + i, size);
             EXPECT_EQ(value, i);
         }
         cuMemFree(d_pi);

@@ -17,6 +17,7 @@ TEST_F(CuEventTest, AC_BA_EventSynchronize_SyncCompletedEvent) {
 }
 
 TEST_F(CuEventTest, AC_INV_EventSynchronize_SyncIncompleteEvent) {
+    // TODO: 待确认
     GTEST_SKIP(); //due to core dump
     CUevent event_;
     CUstream stream;
@@ -28,6 +29,7 @@ TEST_F(CuEventTest, AC_INV_EventSynchronize_SyncIncompleteEvent) {
 }
 
 TEST_F(CuEventTest, AC_INV_EventSynchronize_SyncDestroyedEvent) {
+    // TODO: 待确认
     cuEventDestroy(event);
 
     result = cuEventSynchronize(event);

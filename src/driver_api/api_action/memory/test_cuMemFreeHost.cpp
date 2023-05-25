@@ -26,6 +26,7 @@ TEST_F(CuMemTest, AC_INV_cuMemFreeHost_DoubleFree) {
 }
 
 TEST_F(CuMemTest, AC_SA_cuMemFreeHost_SyncBehavior) {
+    // TODO：待确认
     GTEST_SKIP(); // due to core dump
     INIT_POINT();
     CUdeviceptr d;

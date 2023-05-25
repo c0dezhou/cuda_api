@@ -1,33 +1,24 @@
-#include <cuda.h>
-#include <cuda_runtime_api.h>
-#include <cassert>
-#include <iostream>
-#include <thread>
-#include <vector>
-
-bool verifyResult(const std::vector<float>& h_A,
-                  const std::vector<float>& h_B,
-                  const std::vector<float>& h_C) {
-    for (size_t i = 0; i < h_C.size(); ++i) {
-        float expected = h_A[i] + h_B[i];
-        std::cout << expected << " " << std::endl;
-        if (h_C[i] != expected) {
-            std::cout << "Verification failed at index " << i << std::endl;
-            return false;
-        }
-    }
-    return true;
-}
+#include "test_utils.h"
 
 void cudaOperation(int threadId,
+                   float* h_C,
                    CUdeviceptr d_A,
                    CUdeviceptr d_B,
                    CUdeviceptr d_C,
-                   int size) {
+                   int size,
+                   int numThreads) {
+
     cuCtxSetCurrent(NULL);
 
     CUcontext context;
     cuCtxCreate(&context, 0, 0);
+
+    int dataSizePerThread = size / numThreads;
+    int startIndex = threadId * dataSizePerThread;
+    int endIndex = startIndex + dataSizePerThread;
+    if (threadId == numThreads - 1) {
+        endIndex += size % numThreads;
+    }
 
     CUresult result;
     result = cuMemAlloc(&d_A, size * sizeof(float));
@@ -40,13 +31,17 @@ void cudaOperation(int threadId,
     std::vector<float> h_A(size);
     std::vector<float> h_B(size);
     for (int i = 0; i < size; ++i) {
-        h_A[i] = i + threadId;
-        h_B[i] = i - threadId;
+        h_A[i] = i;
+        h_B[i] = i;
     }
 
-    result = cuMemcpyHtoD(d_A, h_A.data(), size * sizeof(float));
+    result =
+        cuMemcpyHtoD(d_A + startIndex * sizeof(float), h_A.data() + startIndex,
+                     (endIndex - startIndex) * sizeof(float));
     assert(result == CUDA_SUCCESS);
-    result = cuMemcpyHtoD(d_B, h_B.data(), size * sizeof(float));
+    result =
+        cuMemcpyHtoD(d_B + startIndex * sizeof(float), h_B.data() + startIndex,
+                     (endIndex - startIndex) * sizeof(float));
     assert(result == CUDA_SUCCESS);
 
     CUmodule module;
@@ -60,18 +55,19 @@ void cudaOperation(int threadId,
     assert(result == CUDA_SUCCESS);
 
     int blockSize = 256;
-    int gridSize = (size + blockSize - 1) / blockSize;
-    void* kernelParams[] = {&d_A, &d_B, &d_C, &size};
+    int gridSize = ((endIndex - startIndex) + blockSize - 1) / blockSize;
+    CUdeviceptr new_d_A = d_A + startIndex * sizeof(float);
+    CUdeviceptr new_d_B = d_B + startIndex * sizeof(float);
+    CUdeviceptr new_d_C = d_C + startIndex * sizeof(float);
+
+    void* kernelParams[] = {&new_d_A, &new_d_B, &new_d_C, &size};
     result = cuLaunchKernel(function, gridSize, 1, 1, blockSize, 1, 1, 0, NULL,
                             kernelParams, NULL);
     assert(result == CUDA_SUCCESS);
 
-    std::vector<float> h_C(size);
-    result = cuMemcpyDtoH(h_C.data(), d_C, size * sizeof(float));
+    result = cuMemcpyDtoH(h_C + startIndex, new_d_C,
+                          (endIndex - startIndex) * sizeof(float));
     assert(result == CUDA_SUCCESS);
-
-    bool res = verifyResult(h_A, h_B, h_C);
-    assert(res);
 
     result = cuMemFree(d_A);
     assert(result == CUDA_SUCCESS);
@@ -83,7 +79,7 @@ void cudaOperation(int threadId,
     cuCtxDestroy(context);
 }
 
-int main() {
+TEST(MthsTest_, MTH_Single_Device_samekernel_partlydata_parallel) {
     cuInit(0);
 
     const int numThreads = 20;
@@ -94,9 +90,11 @@ int main() {
     std::vector<CUdeviceptr> d_B(numThreads);
     std::vector<CUdeviceptr> d_C(numThreads);
 
+    std::vector<float> h_C(dataSize);
+
     for (int i = 0; i < numThreads; ++i) {
-        threads[i] =
-            std::thread(cudaOperation, i, d_A[i], d_B[i], d_C[i], dataSize);
+        threads[i] = std::thread(cudaOperation, i, h_C.data(), d_A[i], d_B[i], d_C[i],
+                                 dataSize, numThreads);
     }
 
     for (auto& thread : threads) {
@@ -105,5 +103,17 @@ int main() {
 
     std::cout << "All threads finished executing CUDA operations." << std::endl;
 
-    return 0;
+    for (int i = 0; i < dataSize; ++i) {
+        float expected = i + i;
+        float actual = h_C[i];
+        if (actual != expected) {
+            std::cout << "Verification failed at index " << i << ": expected "
+                      << expected << ", actual " << actual << std::endl;
+            exit(1);
+        }
+    }
+
+    std::cout << "Verification succeeded. The final result is reasonable."
+              << std::endl;
+
 }

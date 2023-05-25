@@ -1,9 +1,8 @@
-#include <cuda.h>
-#include <iostream>
+#include "test_utils.h"
 
-#define MAX_ALLOCATIONS 100
+#define MAX_ALLOCATIONS 10
 
-int main() {
+TEST(MEMLEAK, mem_host_not_free) {
     CUdevice dev;
     CUcontext ctx;
     void* hostMem[MAX_ALLOCATIONS];
@@ -13,13 +12,13 @@ int main() {
     cuDeviceGet(&dev, 0);
     cuCtxCreate(&ctx, 0, dev);
 
-    cuMemGetInfo(&free_mem_begin, &total_mem); // get initial free memory
+    cuMemGetInfo(&free_mem_begin, &total_mem);
 
     for (int i = 0; i < MAX_ALLOCATIONS; i++) {
-        cuMemAllocHost(&hostMem[i], 1024);
+        cuMemAllocHost(&hostMem[i], 1024 * MB);
     }
 
-    cuMemGetInfo(&free_mem_end, &total_mem); // get final free memory
+    cuMemGetInfo(&free_mem_end, &total_mem);
     std::cout << "Memory usage after allocating " << MAX_ALLOCATIONS << " host memory blocks: " << (free_mem_begin - free_mem_end) / 1024.0 / 1024.0 << " MB\n";
 
     // Free host memory
@@ -27,9 +26,9 @@ int main() {
         cuMemFreeHost(hostMem[i]);
     }
 
-    cuMemGetInfo(&free_mem_end, &total_mem); // get final free memory
+    // 这不是device上的内存
+    cuMemGetInfo(&free_mem_end, &total_mem);
     std::cout << "Memory usage after freeing host memory blocks: " << (free_mem_begin - free_mem_end) / 1024.0 / 1024.0 << " MB\n";
 
     cuCtxDestroy(ctx);
-    return 0;
 }
