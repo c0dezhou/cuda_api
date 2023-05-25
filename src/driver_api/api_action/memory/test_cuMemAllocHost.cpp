@@ -30,14 +30,21 @@ TEST_F(CuMemTest, AC_INV_MemAllocHost_Largesize) {
 }
 
 TEST_F(CuMemTest, AC_INV_MemAllocHost_Nullptr) {
-    // TODO：待确认
+    // TODO：解决 未定义行为
     const int* pInvalidPtr = nullptr;
     CUresult res = cuMemAllocHost((void**)&pInvalidPtr, sizeof(int));
     EXPECT_EQ(res, CUDA_ERROR_INVALID_VALUE);
 }
 
+// or
+// TEST_F(CuMemTest, AC_INV_MemAllocHost_Nullptr) {
+//     CUresult res = cuMemAllocHost(nullptr, sizeof(int));
+//     EXPECT_EQ(res, CUDA_ERROR_INVALID_VALUE);
+// }
+
 TEST_F(CuMemTest, AC_INV_MemAllocHost_Overbyte) {
-    // TODO：待确认
+    // TODO：解决
+    // cuMemAllocHost() 函数用于在主机上分配页面锁定内存。 它以分配的字节大小作为参数。 因此，它对大小是特定数据类型（如 int 或 float）大小的精确倍数没有任何具体要求。
     int* pIncorrectSize;
     // 不匹配bytesize
     res = cuMemAllocHost((void**)&pIncorrectSize, sizeof(float) + 1);

@@ -77,11 +77,17 @@ TEST_F(CuMemTest, AC_EG_MemcpyHtoD_MaxByte) {
 }
 
 TEST_F(CuMemTest, AC_EG_MemcpyHtoD_UnalignedAddr) {
-    // TODO：待确认
-    INIT_MEMH2D();
+    // TODO：解决
+    // 设备指针和主机指针的对齐取决于所使用的特定 GPU 架构。 一些较旧的体系结构要求内存与特定操作的特定边界对齐。
+    CUdeviceptr d_p;            
+    int* h_p;                  
+    const size_t size = 1024;   
+    cuMemAllocHost((void**)&h_p, size); 
+    cuMemAlloc(&d_p, size);
     res = cuMemcpyHtoD(d_p + 1, h_p + 1, size - 2);
     EXPECT_EQ(res, CUDA_SUCCESS);
-    DEL_MEMH2D();
+    cuMemFreeHost(h_p); 
+    cuMemFree(d_p);
 }
 
 TEST_F(CuMemTest, AC_SA_MemcpyHtoD_SyncBehavior) {
@@ -97,10 +103,16 @@ TEST_F(CuMemTest, AC_SA_MemcpyHtoD_SyncBehavior) {
     DEL_MEMH2D();
 }
 
-TEST_F(CuMemTest, AC_OT_MemcpyHtoD_MultiDevice) {
-    // TODO：待确认
-    GTEST_SKIP();
-    INIT_MEMH2D();
+TEST_F(CuMemTest, MemcpyHtoD_MultiDevice) {
+    // TODO: 解决
+    CUdeviceptr d_p;            
+    int* h_p;                  
+    const size_t size = 1024;  
+    CUresult res; 
+    res = cuMemAllocHost((void**)&h_p, size); 
+    EXPECT_EQ(res, CUDA_SUCCESS);
+    res = cuMemAlloc(&d_p, size);
+    EXPECT_EQ(res, CUDA_SUCCESS);
     int deviceCount;
     cuDeviceGetCount(&deviceCount);
 
@@ -108,23 +120,27 @@ TEST_F(CuMemTest, AC_OT_MemcpyHtoD_MultiDevice) {
         h_p[i] = i;
     }
 
-    for (int i = 0; i < deviceCount - 1; i++) {
+    for (int i = 0; i < deviceCount; i++) {
         CUdevice devicei;
         cuDeviceGet(&devicei, i);
         CUcontext contexti;
-        cuCtxCreate(&contexti, 0, devicei);
+        res = cuCtxCreate(&contexti, 0, devicei);
+        EXPECT_EQ(res, CUDA_SUCCESS);
         cuCtxPushCurrent(contexti);
         CUdeviceptr d_pi;
-        cuMemAlloc(&d_pi, size);
-        cuMemcpyHtoD(d_pi, h_p, size);
+        res = cuMemAlloc(&d_pi, size);
+        EXPECT_EQ(res, CUDA_SUCCESS);
+        res = cuMemcpyHtoD(d_pi, h_p, size);
+        EXPECT_EQ(res, CUDA_SUCCESS);
         for (size_t i = 0; i < size / sizeof(int); i++) {
             int value;
-            cuMemcpyDtoH(&value, d_pi + i, size);
+            cuMemcpyDtoH(&value, d_pi + i * sizeof(int), sizeof(int));
             EXPECT_EQ(value, i);
         }
         cuMemFree(d_pi);
-        cuCtxPopCurrent(&contexti);
+        cuCtxPopCurrent(nullptr);
         cuCtxDestroy(contexti);
     }
-    DEL_MEMH2D();
+    cuMemFreeHost(h_p); 
+    cuMemFree(d_p);
 }

@@ -13,7 +13,7 @@ TEST_F(CuEventTest, AC_BA_EventQuery_QueryCompletedEvent) {
 }
 
 TEST_F(CuEventTest, AC_INV_EventQuery_QueryIncompleteEvent) {
-    // TODO: 待确认
+    // TODO: 解决 未定义行为
     GTEST_SKIP(); // due to core dump
     CUevent event_;
     result = cuEventQuery(event_);
@@ -21,7 +21,10 @@ TEST_F(CuEventTest, AC_INV_EventQuery_QueryIncompleteEvent) {
 }
 
 TEST_F(CuEventTest, AC_INV_EventQuery_QueryDestroyedEvent) {
-    // TODO: 待确认
+    // TODO: 解决
+    // 尝试查询已被销毁的事件。 这会导致未定义的行为。
+
+// cuEventQuery() 函数应该检查 CUDA 事件的状态，但在这种情况下，您尝试查询的事件对象已被 cuEventDestroy() 销毁。 根据 CUDA API，事件一旦被销毁，就不应再次使用。 这样做可能会或可能不会返回错误，具体取决于 CUDA 驱动程序实现的细节，但这肯定不是一个好的做法。
     cuEventDestroy(event);
     result = cuEventQuery(event);
     EXPECT_EQ(CUDA_ERROR_INVALID_HANDLE, result);

@@ -17,7 +17,7 @@ TEST_F(CuEventTest, AC_BA_EventSynchronize_SyncCompletedEvent) {
 }
 
 TEST_F(CuEventTest, AC_INV_EventSynchronize_SyncIncompleteEvent) {
-    // TODO: 待确认
+    // TODO: 解决，正在尝试同步尚未创建或记录的事件，这会导致未定义的行为。
     GTEST_SKIP(); //due to core dump
     CUevent event_;
     CUstream stream;
@@ -29,7 +29,7 @@ TEST_F(CuEventTest, AC_INV_EventSynchronize_SyncIncompleteEvent) {
 }
 
 TEST_F(CuEventTest, AC_INV_EventSynchronize_SyncDestroyedEvent) {
-    // TODO: 待确认
+    // TODO: 解决 未定义行为
     cuEventDestroy(event);
 
     result = cuEventSynchronize(event);

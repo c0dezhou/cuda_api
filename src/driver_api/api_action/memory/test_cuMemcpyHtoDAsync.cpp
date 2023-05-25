@@ -91,9 +91,8 @@ TEST_F(CuMemTest, AC_EG_MemcpyHtoDAsync_UnalignedAddr) {
     DEL_MEMH2DAsync();
 }
 
-TEST_F(CuMemTest, AC_SA_MemcpyHtoDAsync_AsyncBehavior) {
-    // TODO：待确认
-    GTEST_SKIP();  // due to core dump
+TEST_F(CuMemTest, MemcpyHtoDAsync_AsyncBehavior) {
+// TODO: 解决
     CUstream stream1, stream2;
     cuStreamCreate(&stream1, 0);
     cuStreamCreate(&stream2, 0);
@@ -102,9 +101,19 @@ TEST_F(CuMemTest, AC_SA_MemcpyHtoDAsync_AsyncBehavior) {
     char* h_p;
     const size_t size = 1024;
 
-    for (size_t i = 0; i < size/sizeof(char); i++) {
-        ((char*)h_p)[i] = i % 256;
+    // Allocate host memory
+    CUresult res = cuMemAllocHost((void**)&h_p, size);
+    EXPECT_EQ(res, CUDA_SUCCESS);
+
+    // Allocate device memory
+    res = cuMemAlloc(&d_p, size);
+    EXPECT_EQ(res, CUDA_SUCCESS);
+
+    // Initialize host memory
+    for (size_t i = 0; i < size; i++) {
+        h_p[i] = i % 256;
     }
+
     cuMemcpyHtoDAsync(d_p, h_p, size, stream1);
     cuMemcpyDtoHAsync(h_p, d_p, size, stream2);
 
@@ -123,43 +132,63 @@ TEST_F(CuMemTest, AC_SA_MemcpyHtoDAsync_AsyncBehavior) {
     EXPECT_EQ(error1, CUDA_SUCCESS);
     EXPECT_EQ(error2, CUDA_SUCCESS);
 
-    for (size_t i = 0; i < size/sizeof(char); i++) {
-        char value = ((char*)h_p)[i];
+    for (size_t i = 0; i < size; i++) {
+        char value = h_p[i];
         EXPECT_EQ(value, i % 256);
     }
+
+    // Free host and device memory
+    cuMemFreeHost(h_p); 
+    cuMemFree(d_p);
 
     cuStreamDestroy(stream1);
     cuStreamDestroy(stream2);
 }
 
 TEST_F(CuMemTest, AC_OT_MemcpyHtoDAsync_MultiDevice) {
-    // TODO：待确认
-    INIT_MEMH2DAsync();
+    // TODO: 解决
+    CUstream stream;            
+    cuStreamCreate(&stream, 0); 
+    CUdeviceptr d_p;            
+    char* h_p;                  // Change type to char* for easier manipulation
+    const size_t size = 1024;   
+    cuMemAllocHost((void**)&h_p, size); 
+    cuMemAlloc(&d_p, size);
+
+    // Initialize host memory
+    for (size_t i = 0; i < size; i++) {
+        h_p[i] = i % 256;
+    }
+
     int deviceCount;
     cuDeviceGetCount(&deviceCount);
     for (int i = 0; i < deviceCount; i++) {
+        CUdevice device;
         cuDeviceGet(&device, i);
         CUcontext contexti;
         cuCtxCreate(&contexti, 0, device);
         cuCtxPushCurrent(contexti);
-        CUdeviceptr d_p;
-        cuMemAlloc(&d_p, size);
+        CUdeviceptr d_pi;
+        cuMemAlloc(&d_pi, size);
         CUstream streami;
         cuStreamCreate(&streami, 0);
-        cuMemcpyHtoDAsync(d_p, h_p, size, streami);
+        cuMemcpyHtoDAsync(d_pi, h_p, size, streami);
         cuStreamSynchronize(streami);
-        for (size_t i = 0; i < size/sizeof(char); i++) {
+        for (size_t i = 0; i < size; i++) {
             char value;
-            cuMemcpyDtoH(&value, d_p + i, 1);
-            EXPECT_EQ(value & 0xff, i % 256);
+            cuMemcpyDtoH(&value, d_pi + i, sizeof(char));
+            EXPECT_EQ(value, h_p[i]);
         }
         cuStreamDestroy(streami);
-        cuMemFree(d_p);
+        cuMemFree(d_pi);
         cuCtxPopCurrent(&contexti);
         cuCtxDestroy(contexti);
     }
-    DEL_MEMH2DAsync();
+    cuStreamDestroy(stream); 
+    cuMemFreeHost(h_p);      
+    cuMemFree(d_p);
 }
+
 
 TEST_F(CuMemTest, AC_OT_MemcpyHtoDAsync_LoopH2DAsync) {
     INIT_MEMH2DAsync();
