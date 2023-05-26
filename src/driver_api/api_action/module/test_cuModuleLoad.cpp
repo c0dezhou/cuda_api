@@ -27,7 +27,7 @@ TEST_F(cuModuleTest, AC_BA_ModuleLoad_BasicBehavior) {
             EXPECT_EQ(res, CUDA_SUCCESS);
             res = cuMemcpyHtoD(d_B, h_B, N * sizeof(float));
             EXPECT_EQ(res, CUDA_SUCCESS);
-            
+
             void* args[] = {&d_A, &d_B, &d_C, &N};
             int blockSize = 256;
             int gridSize = (N + blockSize - 1) / blockSize;
@@ -79,8 +79,7 @@ TEST_F(cuModuleTest, AC_EG_ModuleLoad_Longfilename) {
         EXPECT_EQ(res, CUDA_SUCCESS);
         res = cuModuleUnload(module_sm75);
         EXPECT_EQ(res, CUDA_SUCCESS);
-    }
-    else {
+    } else {
         CUfunction function;
         res = cuModuleGetFunction(&function, module_sm75, "_Z6vecAddPfS_S_");
         EXPECT_NE(res, CUDA_SUCCESS);
@@ -88,7 +87,7 @@ TEST_F(cuModuleTest, AC_EG_ModuleLoad_Longfilename) {
 }
 
 TEST_F(cuModuleTest, AC_SA_ModuleLoad_SyncBehavior) {
-        CUresult res = cuModuleLoad(&module_sm75, fname_sm75);
+    CUresult res = cuModuleLoad(&module_sm75, fname_sm75);
     EXPECT_EQ(res, CUDA_SUCCESS);
     if (res == CUDA_SUCCESS) {
         CUfunction function;
@@ -192,8 +191,7 @@ TEST_F(cuModuleTest, AC_OT_ModuleLoad_RepeatedCall) {
             EXPECT_EQ(res, CUDA_SUCCESS);
             res = cuModuleGetFunction(&function2, module2, "add");
             EXPECT_EQ(res, 300);
-            EXPECT_NE(function1,
-                      function2);
+            EXPECT_NE(function1, function2);
             res = cuModuleUnload(module1);
             EXPECT_EQ(res, CUDA_SUCCESS);
             res = cuModuleUnload(module2);

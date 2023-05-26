@@ -30,7 +30,6 @@ TEST_F(CuEventTest, AC_BA_EventElapsedTime_CalculateElapsedTime2stream) {
     cuMemAlloc(&d_dst1, dataSize);
     cuMemAlloc(&d_dst2, dataSize);
 
-
     cuEventRecord(start_, stream1);
     cuMemcpyAsync(d_dst1, d_src, dataSize, stream1);
     cuStreamSynchronize(stream1);
@@ -49,7 +48,8 @@ TEST_F(CuEventTest, AC_BA_EventElapsedTime_CalculateElapsedTime2stream) {
     cuEventSynchronize(end_);
     float elapsedTimeParallel = calculateElapsedTime(start_, end_);
 
-    std::cout << elapsedTimeSequential << " " << elapsedTimeParallel << std::endl;
+    std::cout << elapsedTimeSequential << " " << elapsedTimeParallel
+              << std::endl;
 
     EXPECT_GT(elapsedTimeSequential, 0.0f);
     EXPECT_GT(elapsedTimeParallel, 0.0f);
@@ -100,38 +100,36 @@ TEST_F(CuEventTest, AC_INV_EventElapsedTime_CalculateElapsedTimeSameEvent) {
 TEST_F(CuEventTest, AC_BA_EventElapsedTime_CompareToHostRecord) {
     // TODO: 解决
     CUstream stream;
-cuStreamCreate(&stream, CU_STREAM_DEFAULT);
+    cuStreamCreate(&stream, CU_STREAM_DEFAULT);
 
-cuEventRecord(start_, stream);
-cuStreamSynchronize(stream); // Ensure start_ event has completed
+    cuEventRecord(start_, stream);
+    cuStreamSynchronize(stream);  // Ensure start_ event has completed
 
-const int num_iterations = 100000000;
-auto ss = std::chrono::steady_clock::now();
-for (int i = 0; i < num_iterations; i++)
-{
-    volatile int x = i * i + 1;
-}
-auto ee = std::chrono::steady_clock::now();
+    const int num_iterations = 100000000;
+    auto ss = std::chrono::steady_clock::now();
+    for (int i = 0; i < num_iterations; i++) {
+        volatile int x = i * i + 1;
+    }
+    auto ee = std::chrono::steady_clock::now();
 
-cuEventRecord(end_, stream);
-cuStreamSynchronize(stream); // Ensure end_ event has completed
+    cuEventRecord(end_, stream);
+    cuStreamSynchronize(stream);  // Ensure end_ event has completed
 
-float hosttime =
-    std::chrono::duration_cast<std::chrono::milliseconds>(ee - ss).count();
+    float hosttime =
+        std::chrono::duration_cast<std::chrono::milliseconds>(ee - ss).count();
 
-cuStreamSynchronize(stream);
-cuStreamDestroy(stream);
+    cuStreamSynchronize(stream);
+    cuStreamDestroy(stream);
 
-float elapsed_time_ms;
-result = cuEventElapsedTime(&elapsed_time_ms, start_, end_);
+    float elapsed_time_ms;
+    result = cuEventElapsedTime(&elapsed_time_ms, start_, end_);
 
-EXPECT_EQ(CUDA_SUCCESS, result);
+    EXPECT_EQ(CUDA_SUCCESS, result);
 
-const float expected_time_ms = 1.0f;
-const float tolerance_ms = 0.2f;
-EXPECT_NEAR(hosttime, elapsed_time_ms, tolerance_ms);
+    const float expected_time_ms = 1.0f;
+    const float tolerance_ms = 0.2f;
+    EXPECT_NEAR(hosttime, elapsed_time_ms, tolerance_ms);
 
-cuEventDestroy(start_);
-cuEventDestroy(end_);
-
+    cuEventDestroy(start_);
+    cuEventDestroy(end_);
 }

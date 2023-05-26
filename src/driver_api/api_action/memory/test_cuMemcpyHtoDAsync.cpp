@@ -92,7 +92,7 @@ TEST_F(CuMemTest, AC_EG_MemcpyHtoDAsync_UnalignedAddr) {
 }
 
 TEST_F(CuMemTest, MemcpyHtoDAsync_AsyncBehavior) {
-// TODO: 解决
+    // TODO: 解决 renew 0
     CUstream stream1, stream2;
     cuStreamCreate(&stream1, 0);
     cuStreamCreate(&stream2, 0);
@@ -134,11 +134,11 @@ TEST_F(CuMemTest, MemcpyHtoDAsync_AsyncBehavior) {
 
     for (size_t i = 0; i < size; i++) {
         char value = h_p[i];
-        EXPECT_EQ(value, i % 256);
+        EXPECT_EQ(value & 0xff, i % 256);
     }
 
     // Free host and device memory
-    cuMemFreeHost(h_p); 
+    cuMemFreeHost(h_p);
     cuMemFree(d_p);
 
     cuStreamDestroy(stream1);
@@ -147,12 +147,12 @@ TEST_F(CuMemTest, MemcpyHtoDAsync_AsyncBehavior) {
 
 TEST_F(CuMemTest, AC_OT_MemcpyHtoDAsync_MultiDevice) {
     // TODO: 解决
-    CUstream stream;            
-    cuStreamCreate(&stream, 0); 
-    CUdeviceptr d_p;            
-    char* h_p;                  // Change type to char* for easier manipulation
-    const size_t size = 1024;   
-    cuMemAllocHost((void**)&h_p, size); 
+    CUstream stream;
+    cuStreamCreate(&stream, 0);
+    CUdeviceptr d_p;
+    char* h_p;  // Change type to char* for easier manipulation
+    const size_t size = 1024;
+    cuMemAllocHost((void**)&h_p, size);
     cuMemAlloc(&d_p, size);
 
     // Initialize host memory
@@ -184,15 +184,14 @@ TEST_F(CuMemTest, AC_OT_MemcpyHtoDAsync_MultiDevice) {
         cuCtxPopCurrent(&contexti);
         cuCtxDestroy(contexti);
     }
-    cuStreamDestroy(stream); 
-    cuMemFreeHost(h_p);      
+    cuStreamDestroy(stream);
+    cuMemFreeHost(h_p);
     cuMemFree(d_p);
 }
 
-
 TEST_F(CuMemTest, AC_OT_MemcpyHtoDAsync_LoopH2DAsync) {
     INIT_MEMH2DAsync();
-    for (size_t i = 0; i < size/sizeof(char); i++) {
+    for (size_t i = 0; i < size / sizeof(char); i++) {
         ((char*)h_p)[i] = i % 256;
     }
     const int loopCount = 10;
@@ -200,11 +199,11 @@ TEST_F(CuMemTest, AC_OT_MemcpyHtoDAsync_LoopH2DAsync) {
         cuMemcpyHtoDAsync(d_p, h_p, size, stream);
     }
     cuStreamSynchronize(stream);
-    for (size_t i = 0; i < size/sizeof(char); i++) {
+    for (size_t i = 0; i < size / sizeof(char); i++) {
         char value;
         cuMemcpyDtoH(&value, d_p + i, 1);
         // & 一下0xff，不然是字符串'0xxx'
-        EXPECT_EQ(value & 0xff, i % 256); 
+        EXPECT_EQ(value & 0xff, i % 256);
     }
     DEL_MEMH2DAsync();
 }

@@ -21,31 +21,33 @@ TEST_F(cuModuleTest, AC_BA_ModuleLoadData_BasicBehavior) {
         EXPECT_EQ(res, CUDA_SUCCESS);
         if (res == CUDA_SUCCESS) {
             int N = 1024;
-    float* h_A = new float[N];
-    float* h_B = new float[N];
-    float* h_C = new float[N];
-    for (int i = 0; i < N; i++) {
-        h_A[i] = i;
-        h_B[i] = i * 2;
-    }
-    CUdeviceptr d_A, d_B, d_C;
-    cuMemAlloc(&d_A, N * sizeof(float));
-    cuMemAlloc(&d_B, N * sizeof(float));
-    cuMemAlloc(&d_C, N * sizeof(float));
-    cuMemcpyHtoD(d_A, h_A, N * sizeof(float));
-    cuMemcpyHtoD(d_B, h_B, N * sizeof(float));
+            float* h_A = new float[N];
+            float* h_B = new float[N];
+            float* h_C = new float[N];
+            for (int i = 0; i < N; i++) {
+                h_A[i] = i;
+                h_B[i] = i * 2;
+            }
+            CUdeviceptr d_A, d_B, d_C;
+            cuMemAlloc(&d_A, N * sizeof(float));
+            cuMemAlloc(&d_B, N * sizeof(float));
+            cuMemAlloc(&d_C, N * sizeof(float));
+            cuMemcpyHtoD(d_A, h_A, N * sizeof(float));
+            cuMemcpyHtoD(d_B, h_B, N * sizeof(float));
 
-    void* args[] = {&d_A, &d_B, &d_C, &N};
-    int blockSize = 256;
-    int gridSize = (N + blockSize - 1) / blockSize;
-    cuLaunchKernel(function, gridSize, 1, 1, blockSize, 1, 1, 0, nullptr, args, nullptr);
-    
-    cuCtxSynchronize(); // Make sure the kernel has finished before we copy back the results.
+            void* args[] = {&d_A, &d_B, &d_C, &N};
+            int blockSize = 256;
+            int gridSize = (N + blockSize - 1) / blockSize;
+            cuLaunchKernel(function, gridSize, 1, 1, blockSize, 1, 1, 0,
+                           nullptr, args, nullptr);
 
-    cuMemcpyDtoH(h_C, d_C, N * sizeof(float));
-    for (int i = 0; i < N; i++) {
-        EXPECT_FLOAT_EQ(h_C[i], h_A[i] + h_B[i]);
-    }
+            cuCtxSynchronize();  // Make sure the kernel has finished before we
+                                 // copy back the results.
+
+            cuMemcpyDtoH(h_C, d_C, N * sizeof(float));
+            for (int i = 0; i < N; i++) {
+                EXPECT_FLOAT_EQ(h_C[i], h_A[i] + h_B[i]);
+            }
 
             delete[] h_A;
             delete[] h_B;
@@ -65,7 +67,7 @@ TEST_F(cuModuleTest, AC_BA_ModuleLoadData_BasicBehavior) {
 
 TEST_F(cuModuleTest, AC_INV_ModuleLoadData_InvalidImag) {
     // TODO：待确认
-    GTEST_SKIP(); // due to coredump
+    GTEST_SKIP();  // due to coredump
     CUmodule module;
     CUresult res = cuModuleLoadData(&module, nullptr);
     EXPECT_EQ(res, CUDA_ERROR_INVALID_VALUE);

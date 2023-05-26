@@ -105,7 +105,7 @@ TEST_F(CuDeviceTest, AC_OT_GetCurrent_CanHandleRepeatedCalls) {
     // // EXPECT_EQ(current_context, null_context);
     // // EXPECT_EQ(current_context, 0x564d0349ed90);
 
-    GTEST_SKIP(); // core dump here
+    GTEST_SKIP();  // core dump here
 
     res = cuCtxSetCurrent(context);
     EXPECT_EQ(res, CUDA_SUCCESS);

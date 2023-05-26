@@ -3,7 +3,7 @@
 #define INIT_MEMD2HAsync()                             \
     CUdeviceptr dptr;                                  \
     void* hptr;                                        \
-    size_t size = 5;                                \
+    size_t size = 5;                                   \
     int init_value = 1234;                             \
     cuMemAllocHost(&hptr, size);                       \
     cuMemAlloc(&dptr, size);                           \

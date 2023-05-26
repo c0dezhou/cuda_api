@@ -11,7 +11,6 @@ TEST_F(CuStreamTests, AC_INV_StreamQuery_EmptyStream) {
 }
 
 TEST_F(CuStreamTests, AC_BA_StreamQuery_PendingOperations) {
-
     int result = 0;
     int* d_result;
     cuMemAlloc((CUdeviceptr*)&d_result, sizeof(int));
@@ -31,7 +30,6 @@ TEST_F(CuStreamTests, AC_BA_StreamQuery_PendingOperations) {
 }
 
 TEST_F(CuStreamTests, AC_BA_StreamQuery_CompletedOperations) {
-
     int result = 0;
     int* d_result;
     cuMemAlloc((CUdeviceptr*)&d_result, sizeof(int));

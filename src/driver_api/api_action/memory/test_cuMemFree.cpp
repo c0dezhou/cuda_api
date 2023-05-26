@@ -14,7 +14,7 @@ TEST_F(CuMemTest, AC_EG_cuMemFree_EdgeCases1) {
 }
 
 TEST_F(CuMemTest, AC_OT_cuMemFree_leagleLoopInSameContext) {
-    for (int i = 0; i < 100; i++){
+    for (int i = 0; i < 100; i++) {
         CUdeviceptr device_data;
         cuMemAlloc(&device_data, 1024);
         CUresult result = cuMemFree(device_data);
@@ -28,13 +28,12 @@ TEST_F(CuMemTest, AC_INV_cuMemFree_illeagleLoopInSameContext) {
 
     for (int i = 0; i < 100; i++) {
         CUresult result = cuMemFree(device_data);
-        if (i == 0){
+        if (i == 0) {
             EXPECT_EQ(result, CUDA_SUCCESS);
-        }else{
+        } else {
             // EXPECT_EQ(result, CUDA_ERROR_INVALID_HANDLE);
             EXPECT_EQ(result, CUDA_ERROR_INVALID_VALUE);
         }
-        
     }
 }
 
@@ -45,7 +44,6 @@ TEST_F(CuMemTest, AC_INV_cuMemFree_Unallocatedptr) {
 }
 
 TEST_F(CuMemTest, AC_INV_cuMemFree_ullptr) {
-
     CUdeviceptr null_device_ptr = NULL;
     // 0x00000000 success
     CUresult result = cuMemFree(null_device_ptr);

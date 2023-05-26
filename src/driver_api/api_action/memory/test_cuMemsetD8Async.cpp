@@ -1,13 +1,12 @@
 #include "memory_tests.h"
 
-#define INIT_MEMSETD8Async()   \
-    CUdeviceptr d_p;        \
-    const size_t size = 10*sizeof(unsigned char);   \
-    cuMemAlloc(&d_p, size); \
+#define INIT_MEMSETD8Async()                        \
+    CUdeviceptr d_p;                                \
+    const size_t size = 10 * sizeof(unsigned char); \
+    cuMemAlloc(&d_p, size);                         \
     unsigned char h_ptr_[10];
 
-#define DEL_MEMSETD8Async() \
-    cuMemFree(d_p);
+#define DEL_MEMSETD8Async() cuMemFree(d_p);
 
 TEST_F(CuMemTest, AC_INV_MemsetD8Async_BasicApiBehavior) {
     INIT_MEMSETD8Async();
@@ -17,7 +16,7 @@ TEST_F(CuMemTest, AC_INV_MemsetD8Async_BasicApiBehavior) {
     cuStreamSynchronize(0);
 
     cuMemcpyDtoH(h_ptr_, d_p, size);
-    for (size_t i = 0; i < size/sizeof(unsigned char); i++) {
+    for (size_t i = 0; i < size / sizeof(unsigned char); i++) {
         EXPECT_EQ(h_ptr_[i] & 0xff, uc);
     }
     DEL_MEMSETD8Async();
@@ -90,7 +89,7 @@ TEST_F(CuMemTest, AC_EG_MemsetD8Async_Uc0xff) {
 
 TEST_F(CuMemTest, AC_EG_MemsetD8Async_Uc0x80) {
     INIT_MEMSETD8Async();
-    // 0x80是最高位为1的最小值 
+    // 0x80是最高位为1的最小值
     CUresult res = cuMemsetD8Async(d_p, 0x80, size, 0);
     EXPECT_EQ(res, CUDA_SUCCESS);
     cuStreamSynchronize(0);
@@ -162,14 +161,15 @@ TEST_F(CuMemTest, AC_OT_MemsetD8Async_MultiDevice) {
 TEST_F(CuMemTest, MemsetD8Async_AsyncBehaviorSetD8Async) {
     // TODO: 解决
     // 在同步发出cuMemsetD8Async操作的流之前，您正在执行设备到主机的内存复制。此操作是异步的，这意味着它立即将控制返回给CPU并并行地完成操作。因此，当在cuMemsetD8Async之后立即执行cuMemcpyDtoH时，有可能memset操作尚未完成，从而导致您复制尚未设置的数据。
-    CUdeviceptr d_p;        
-    const size_t size = 10*sizeof(unsigned char);   
-    cuMemAlloc(&d_p, size); 
+    CUdeviceptr d_p;
+    const size_t size = 10 * sizeof(unsigned char);
+    cuMemAlloc(&d_p, size);
     unsigned char h_ptr_[10];
     unsigned char uc = 0xFF;
     cuMemsetD8Async(d_p, uc, size, 0);
 
-    cuStreamSynchronize(0);  // Synchronize the stream right after cuMemsetD8Async
+    cuStreamSynchronize(
+        0);  // Synchronize the stream right after cuMemsetD8Async
 
     cuMemcpyDtoH(h_ptr_, d_p, size);
     for (size_t i = 0; i < size / sizeof(unsigned char); i++) {
@@ -178,7 +178,6 @@ TEST_F(CuMemTest, MemsetD8Async_AsyncBehaviorSetD8Async) {
 
     cuMemFree(d_p);
 }
-
 
 TEST_F(CuMemTest, LOOP_LoopSetD8Async) {
     unsigned char value = 42;
@@ -219,11 +218,12 @@ TEST_F(CuMemTest, AC_OT_MemsetD8Async_RepeatedCallSetD8Async) {
 }
 
 TEST_F(CuMemTest, AC_OT_MemsetD8Async_overflowSetD8Async) {
-    // TODO: 解决
-    // 流销毁：在代码的最后一行中，试图销毁默认流（流 0）。 根据 CUDA 编程指南，不应破坏默认流。 调用 cuStreamDestroy(0); 可能会导致问题。
-    CUdeviceptr d_p;        
-    const size_t size = 10*sizeof(unsigned char);   
-    cuMemAlloc(&d_p, size); 
+    // TODO: 解决 renew also core dump
+    // 流销毁：在代码的最后一行中，试图销毁默认流（流 0）。 根据 CUDA
+    // 编程指南，不应破坏默认流。 调用 cuStreamDestroy(0); 可能会导致问题。
+    CUdeviceptr d_p;
+    const size_t size = 10 * sizeof(unsigned char);
+    cuMemAlloc(&d_p, size);
     unsigned char h_ptr_[10];
 
     unsigned char uc = 0xFF;
@@ -254,6 +254,5 @@ TEST_F(CuMemTest, AC_OT_MemsetD8Async_overflowSetD8Async) {
         EXPECT_EQ(h_ptr_[i], 0x00);
     }
 
-    // cuStreamDestroy(0);
     cuMemFree(d_p);
 }

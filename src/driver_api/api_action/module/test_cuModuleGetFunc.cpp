@@ -3,14 +3,13 @@
 TEST_F(cuModuleTest, AC_BA_ModuleGetFunction_BasicBehavior) {
     CUfunction function;
 
-    CUresult result = cuModuleGetFunction(&function, module, "_Z18arraySelfIncrementPii");
+    CUresult result =
+        cuModuleGetFunction(&function, module, "_Z18arraySelfIncrementPii");
     EXPECT_EQ(result, CUDA_SUCCESS);
     EXPECT_NE(function, nullptr);
 }
 
-
 TEST_F(cuModuleTest, AC_INV_ModuleGetFunction_InvalidhFunc) {
-
     EXPECT_EQ(cuModuleGetFunction(nullptr, module, "_Z18arraySelfIncrementPii"),
               CUDA_ERROR_INVALID_HANDLE);
 }
@@ -21,7 +20,6 @@ TEST_F(cuModuleTest, AC_INV_ModuleGetFunction_Invalidhmod) {
     EXPECT_EQ(
         cuModuleGetFunction(&function, nullptr, "_Z18arraySelfIncrementPii"),
         CUDA_ERROR_INVALID_HANDLE);
-
 }
 
 TEST_F(cuModuleTest, AC_INV_ModuleGetFunction_Invalidfname) {
@@ -41,13 +39,15 @@ TEST_F(cuModuleTest, AC_INV_ModuleGetFunction_Invalidfuncname) {
 TEST_F(cuModuleTest, AC_EG_ModuleGetFunction_nullstr) {
     CUfunction function;
 
-    EXPECT_EQ(cuModuleGetFunction(&function, module, ""), CUDA_ERROR_INVALID_VALUE);
+    EXPECT_EQ(cuModuleGetFunction(&function, module, ""),
+              CUDA_ERROR_INVALID_VALUE);
 }
 
 TEST_F(cuModuleTest, AC_OT_ModuleGetFunction_DifferentModulesAndFunctions) {
     CUfunction function1, function2, function3;
 
-    CUresult result1 = cuModuleGetFunction(&function1, module, "_Z9addKernelPiPKiS1_");
+    CUresult result1 =
+        cuModuleGetFunction(&function1, module, "_Z9addKernelPiPKiS1_");
     CUresult result2 = cuModuleGetFunction(&function2, module, "_Z3addiiPi");
 
     EXPECT_EQ(result1, CUDA_SUCCESS);
@@ -57,11 +57,12 @@ TEST_F(cuModuleTest, AC_OT_ModuleGetFunction_DifferentModulesAndFunctions) {
     EXPECT_NE(function1, function2);
 
     CUmodule module2;
-    cuModuleLoad(
-        &module2,
-        "/data/system/yunfan/cuda_api/common/cuda_kernel/cuda_kernel_sm_75.ptx");
+    cuModuleLoad(&module2,
+                 "/data/system/yunfan/cuda_api/common/cuda_kernel/"
+                 "cuda_kernel_sm_75.ptx");
 
-    CUresult result3 = cuModuleGetFunction(&function3, module2, "_Z6vecAddPfS_S_");
+    CUresult result3 =
+        cuModuleGetFunction(&function3, module2, "_Z6vecAddPfS_S_");
 
     EXPECT_EQ(result3, CUDA_SUCCESS);
     EXPECT_NE(function3, nullptr);
@@ -74,12 +75,14 @@ TEST_F(cuModuleTest, AC_OT_ModuleGetFunction_DifferentModulesAndFunctions) {
 TEST_F(cuModuleTest, AC_OT_ModuleGetFunction_RepeatedCalls) {
     CUfunction function1, function2, function3;
 
-    CUresult result1 = cuModuleGetFunction(&function1, module, "_Z9addKernelPiPKiS1_");
+    CUresult result1 =
+        cuModuleGetFunction(&function1, module, "_Z9addKernelPiPKiS1_");
 
     EXPECT_EQ(result1, CUDA_SUCCESS);
     EXPECT_NE(function1, nullptr);
 
-    CUresult result2 = cuModuleGetFunction(&function2, module, "_Z9addKernelPiPKiS1_");
+    CUresult result2 =
+        cuModuleGetFunction(&function2, module, "_Z9addKernelPiPKiS1_");
 
     EXPECT_EQ(result2, CUDA_SUCCESS);
     EXPECT_NE(function2, nullptr);

@@ -49,7 +49,7 @@ TEST(cuModuleTest_, AC_INV_ModuleUnload_UnloadNullModule) {
 
 TEST(cuModuleTest_, AC_INV_ModuleUnload_UnloadInvalidModule) {
     // TODO：待确认
-    GTEST_SKIP(); //core dump
+    GTEST_SKIP();  // core dump
     INIT_UNLOADMODULE();
     CUresult res = cuModuleUnload(module_sm75);
     EXPECT_EQ(CUDA_ERROR_INVALID_HANDLE, res);
@@ -112,19 +112,20 @@ TEST(cuModuleTest_, AC_OT_ModuleUnload_UnloadRepeatedModule) {
     cuCtxDestroy(context);
 }
 
-TEST_F(CuModuleTests, UnloadTwice) {
-    CUmodule cuModule;
-    CUresult res;
+// TEST_F(cuModuleTest_, UnloadTwice) {
+//     CUmodule cuModule;
+//     CUresult res;
 
-    // Load a module
-    res = cuModuleLoad(&cuModule, "path_to_your_ptx_file");
-    ASSERT_EQ(res, CUDA_SUCCESS);
+//     // Load a module
+//     res = cuModuleLoad(&cuModule, "path_to_your_ptx_file");
+//     ASSERT_EQ(res, CUDA_SUCCESS);
 
-    // Unload the module for the first time
-    res = cuModuleUnload(cuModule);
-    EXPECT_EQ(res, CUDA_SUCCESS);
+//     // Unload the module for the first time
+//     res = cuModuleUnload(cuModule);
+//     EXPECT_EQ(res, CUDA_SUCCESS);
 
-    // Try to unload the same module again
-    res = cuModuleUnload(cuModule);
-    EXPECT_EQ(res, CUDA_ERROR_INVALID_VALUE); // Expect an error indicating invalid operation
-}
+//     // Try to unload the same module again
+//     res = cuModuleUnload(cuModule);
+//     EXPECT_EQ(res, CUDA_ERROR_INVALID_VALUE);  // Expect an error indicating
+//                                                // invalid operation
+// }

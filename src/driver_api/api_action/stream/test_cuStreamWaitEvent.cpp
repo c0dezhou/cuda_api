@@ -1,7 +1,7 @@
 #include "stream_tests.h"
 
 TEST_F(CuStreamTests, StreamWaitEvent_WaitForEventCompletion) {
-// TODO: 解决
+    // TODO: 解决 renew res2 = 0
     CUstream cuStream1, cuStream2;
     cuStreamCreate(&cuStream1, 0);
     cuStreamCreate(&cuStream2, CU_STREAM_NON_BLOCKING);
@@ -12,14 +12,14 @@ TEST_F(CuStreamTests, StreamWaitEvent_WaitForEventCompletion) {
     int result = 0;
     int* d_result;
     cuMemAlloc((CUdeviceptr*)&d_result, sizeof(int));
-    cuMemsetD32((CUdeviceptr)d_result, 0, 1); // Initialize device memory
+    cuMemsetD32((CUdeviceptr)d_result, 0, 1);  // Initialize device memory
 
     int input_a = 5;
     int input_b = 7;
 
     void* args[] = {&input_a, &input_b, &d_result};
     cuLaunchKernel(cuFunction, 1, 1, 1, 1, 1, 1, 0, cuStream1, args, nullptr);
-    cuStreamSynchronize(cuStream1); // Ensure the kernel has finished
+    cuStreamSynchronize(cuStream1);  // Ensure the kernel has finished
 
     cuEventRecord(event, cuStream1);
 
@@ -28,7 +28,7 @@ TEST_F(CuStreamTests, StreamWaitEvent_WaitForEventCompletion) {
     int result2 = 0;
     int* d_result2;
     cuMemAlloc((CUdeviceptr*)&d_result2, sizeof(int));
-    cuMemsetD32((CUdeviceptr)d_result2, 0, 1); // Initialize device memory
+    cuMemsetD32((CUdeviceptr)d_result2, 0, 1);  // Initialize device memory
 
     void* args1[] = {&input_a, &input_b, &d_result2};
     cuLaunchKernel(cuFunction, 1, 1, 1, 1, 1, 1, 0, cuStream2, args, nullptr);

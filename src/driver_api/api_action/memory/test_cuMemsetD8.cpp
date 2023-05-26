@@ -1,9 +1,9 @@
 #include "memory_tests.h"
 
-#define INIT_MEMSETD8()       \
-    CUdeviceptr d_p;          \
-    const size_t size = 10*sizeof(int); \
-    cuMemAlloc(&d_p, 10*sizeof(int));
+#define INIT_MEMSETD8()                   \
+    CUdeviceptr d_p;                      \
+    const size_t size = 10 * sizeof(int); \
+    cuMemAlloc(&d_p, 10 * sizeof(int));
 
 #define DEL_MEMSETD8() cuMemFree(d_p);
 

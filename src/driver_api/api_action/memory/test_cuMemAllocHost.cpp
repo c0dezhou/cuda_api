@@ -44,7 +44,9 @@ TEST_F(CuMemTest, AC_INV_MemAllocHost_Nullptr) {
 
 TEST_F(CuMemTest, AC_INV_MemAllocHost_Overbyte) {
     // TODO：解决
-    // cuMemAllocHost() 函数用于在主机上分配页面锁定内存。 它以分配的字节大小作为参数。 因此，它对大小是特定数据类型（如 int 或 float）大小的精确倍数没有任何具体要求。
+    // cuMemAllocHost() 函数用于在主机上分配页面锁定内存。
+    // 它以分配的字节大小作为参数。 因此，它对大小是特定数据类型（如 int 或
+    // float）大小的精确倍数没有任何具体要求。
     int* pIncorrectSize;
     // 不匹配bytesize
     res = cuMemAllocHost((void**)&pIncorrectSize, sizeof(float) + 1);
@@ -70,8 +72,7 @@ TEST_F(CuMemTest, AC_OT_MemAllocHost_DataIntegrity) {
         for (size_t i = 0; i < alloc_size; i++) {
             int expected = p[i];
             int actual = p[i];
-            EXPECT_EQ(actual, expected)
-                << "Data corruption at " << i;
+            EXPECT_EQ(actual, expected) << "Data corruption at " << i;
         }
         cuMemFreeHost(p);
     }

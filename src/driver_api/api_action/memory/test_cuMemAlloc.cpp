@@ -1,6 +1,6 @@
 #include "memory_tests.h"
 
-#define MAX_MEM 1024*1024*1024 *46 // 46GB
+#define MAX_MEM 1024 * 1024 * 1024 * 46  // 46GB
 #define INVALID_MEM 0
 #define DEAD_HANDLE 0xdeadbeef
 
@@ -39,7 +39,7 @@ TEST_F(CuMemTest, AC_INV_MemAlloc_AllocInvalidMem) {
 
 TEST_F(CuMemTest, AC_EG_MemAlloc_AllocMaximumMem) {
     float* d_A;
-    res = cuMemAlloc((CUdeviceptr*)&d_A, (MAX_MEM +1)*sizeof(float));
+    res = cuMemAlloc((CUdeviceptr*)&d_A, (MAX_MEM + 1) * sizeof(float));
     EXPECT_EQ(res, CUDA_ERROR_OUT_OF_MEMORY);
 
     cuMemFree((CUdeviceptr)d_A);
