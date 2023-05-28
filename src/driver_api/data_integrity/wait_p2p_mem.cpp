@@ -4,10 +4,7 @@
 // •	使用cuMemAlloc在两个不同的设备上分别分配一个设备内存地址，并使用cuMemcpyPeer或者cuMemcpyPeerAsync在两个设备之间进行内存拷贝，但是两个设备之间没有启用对等访问。期望结果是CUDA驱动程序API返回一个错误码，表示非法内存访问。
 // •	使用cuMemAllocManaged分配一个托管内存地址，并将其传递给两个不同的设备上运行的CUDA核函数。期望结果是CUDA驱动程序API能够自动地在两个设备之间迁移托管内存，并正确地执行CUDA核函数。
 
-// Include gtest header file
-#include <gtest/gtest.h>
-// Include CUDA driver API header file
-#include <cuda.h>
+#include "test_utils.h"
 
 // Define a CUDA kernel that takes a managed memory address as argument
 __global__ void Kernel(CUdeviceptr d_ptr) {

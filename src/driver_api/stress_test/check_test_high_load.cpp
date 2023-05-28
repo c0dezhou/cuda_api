@@ -7,7 +7,7 @@
 #include <cstdlib>
 
 // Define a macro to check cuda errors
-#define CUDA_CHECK(call) \
+#define checkError(call) \
   do { \
     CUresult error = call; \
     ASSERT_EQ(error, CUDA_SUCCESS) << "CUDA error: " << error; \
@@ -19,21 +19,21 @@ class CudaDriverTest : public ::testing::Test {
   // Set up the test environment
   void SetUp() override {
     // Initialize the cuda driver api
-    CUDA_CHECK(cuInit(0));
+    checkError(cuInit(0));
     // Get the first device handle
-    CUDA_CHECK(cuDeviceGet(&device_, 0));
+    checkError(cuDeviceGet(&device_, 0));
     // Create a context for the device
-    CUDA_CHECK(cuCtxCreate(&context_, 0, device_));
+    checkError(cuCtxCreate(&context_, 0, device_));
     // Load the module containing the kernel functions
-    CUDA_CHECK(cuModuleLoad(&module_, "kernel.ptx"));
+    checkError(cuModuleLoad(&module_, "kernel.ptx"));
   }
 
   // Tear down the test environment
   void TearDown() override {
     // Unload the module
-    CUDA_CHECK(cuModuleUnload(module_));
+    checkError(cuModuleUnload(module_));
     // Destroy the context
-    CUDA_CHECK(cuCtxDestroy(context_));
+    checkError(cuCtxDestroy(context_));
   }
 
   // Declare some common variables
@@ -46,19 +46,19 @@ class CudaDriverTest : public ::testing::Test {
 TEST_F(CudaDriverTest, StressTestOne) {
   // Create a stream
   CUstream stream;
-  CUDA_CHECK(cuStreamCreate(&stream, CU_STREAM_DEFAULT));
+  checkError(cuStreamCreate(&stream, CU_STREAM_DEFAULT));
   // Get the kernel function handle
   CUfunction kernel;
-  CUDA_CHECK(cuModuleGetFunction(&kernel, module_, "matmul"));
+  checkError(cuModuleGetFunction(&kernel, module_, "matmul"));
   // Allocate host and device memory for input and output matrices
   const int N = 1000;
   float *h_A, *h_B, *h_C, *d_A, *d_B, *d_C;
-  CUDA_CHECK(cuMemAllocHost((void**)&h_A, N * N * sizeof(float)));
-  CUDA_CHECK(cuMemAllocHost((void**)&h_B, N * N * sizeof(float)));
-  CUDA_CHECK(cuMemAllocHost((void**)&h_C, N * N * sizeof(float)));
-  CUDA_CHECK(cuMemAlloc(&d_A, N * N * sizeof(float)));
-  CUDA_CHECK(cuMemAlloc(&d_B, N * N * sizeof(float)));
-  CUDA_CHECK(cuMemAlloc(&d_C, N * N * sizeof(float)));
+  checkError(cuMemAllocHost((void**)&h_A, N * N * sizeof(float)));
+  checkError(cuMemAllocHost((void**)&h_B, N * N * sizeof(float)));
+  checkError(cuMemAllocHost((void**)&h_C, N * N * sizeof(float)));
+  checkError(cuMemAlloc(&d_A, N * N * sizeof(float)));
+  checkError(cuMemAlloc(&d_B, N * N * sizeof(float)));
+  checkError(cuMemAlloc(&d_C, N * N * sizeof(float)));
   // Repeat the matrix multiplication for 100 times
   for (int i = 0; i < 100; i++) {
     // Generate random matrices
@@ -69,16 +69,16 @@ TEST_F(CudaDriverTest, StressTestOne) {
       }
     }
     // Copy input matrices to device memory on stream
-    CUDA_CHECK(cuMemcpyHtoDAsync(d_A, h_A, N * N * sizeof(float), stream));
-    CUDA_CHECK(cuMemcpyHtoDAsync(d_B, h_B, N * N * sizeof(float), stream));
+    checkError(cuMemcpyHtoDAsync(d_A, h_A, N * N * sizeof(float), stream));
+    checkError(cuMemcpyHtoDAsync(d_B, h_B, N * N * sizeof(float), stream));
     // Set up kernel parameters
     void *args[] = {&d_A, &d_B, &d_C, &N};
     // Launch kernel function on stream
-    CUDA_CHECK(cuLaunchKernel(kernel, N / 256, 1, 1, 256, 1, 1, 0, stream, args, NULL));
+    checkError(cuLaunchKernel(kernel, N / 256, 1, 1, 256, 1, 1, 0, stream, args, NULL));
     // Copy output matrix back to host memory on stream
-    CUDA_CHECK(cuMemcpyDtoHAsync(h_C, d_C, N * N * sizeof(float), stream));
+    checkError(cuMemcpyDtoHAsync(h_C, d_C, N * N * sizeof(float), stream));
     // Synchronize stream
-    CUDA_CHECK(cuStreamSynchronize(stream));
+    checkError(cuStreamSynchronize(stream));
     // Verify the results
     for (int j = 0; j < N; j++) {
       for (int k = 0; k < N; k++) {
@@ -91,33 +91,33 @@ TEST_F(CudaDriverTest, StressTestOne) {
     }
   }
   // Free host and device memory
-  CUDA_CHECK(cuMemFreeHost(h_A));
-  CUDA_CHECK(cuMemFreeHost(h_B));
-  CUDA_CHECK(cuMemFreeHost(h_C));
-  CUDA_CHECK(cuMemFree(d_A));
-  CUDA_CHECK(cuMemFree(d_B));
-  CUDA_CHECK(cuMemFree(d_C));
+  checkError(cuMemFreeHost(h_A));
+  checkError(cuMemFreeHost(h_B));
+  checkError(cuMemFreeHost(h_C));
+  checkError(cuMemFree(d_A));
+  checkError(cuMemFree(d_B));
+  checkError(cuMemFree(d_C));
   // Destroy stream
-  CUDA_CHECK(cuStreamDestroy(stream));
+  checkError(cuStreamDestroy(stream));
 }
 
 // Define a test case for stress test three
 TEST_F(CudaDriverTest, StressTestThree) {
   // Create two streams
   CUstream stream1, stream2;
-  CUDA_CHECK(cuStreamCreate(&stream1, CU_STREAM_DEFAULT));
-  CUDA_CHECK(cuStreamCreate(&stream2, CU_STREAM_DEFAULT));
+  checkError(cuStreamCreate(&stream1, CU_STREAM_DEFAULT));
+  checkError(cuStreamCreate(&stream2, CU_STREAM_DEFAULT));
   // Get the kernel function handles
   CUfunction kernel1, kernel2;
-  CUDA_CHECK(cuModuleGetFunction(&kernel1, module_, "forward"));
-  CUDA_CHECK(cuModuleGetFunction(&kernel2, module_, "backward"));
+  checkError(cuModuleGetFunction(&kernel1, module_, "forward"));
+  checkError(cuModuleGetFunction(&kernel2, module_, "backward"));
   // Allocate host and device memory for input and output data
   const int N = 1000;
   float *h_input, *h_output, *d_input, *d_output;
-  CUDA_CHECK(cuMemAllocHost((void**)&h_input, N * sizeof(float)));
-  CUDA_CHECK(cuMemAllocHost((void**)&h_output, N * sizeof(float)));
-  CUDA_CHECK(cuMemAlloc(&d_input, N * sizeof(float)));
-  CUDA_CHECK(cuMemAlloc(&d_output, N * sizeof(float)));
+  checkError(cuMemAllocHost((void**)&h_input, N * sizeof(float)));
+  checkError(cuMemAllocHost((void**)&h_output, N * sizeof(float)));
+  checkError(cuMemAlloc(&d_input, N * sizeof(float)));
+  checkError(cuMemAlloc(&d_output, N * sizeof(float)));
   // Repeat the deep learning task for 100 times
   for (int i = 0; i < 100; i++) {
     // Generate random weights and gradients
@@ -126,38 +126,38 @@ TEST_F(CudaDriverTest, StressTestThree) {
       h_output[j] = rand() % 10;
     }
     // Copy input data to device memory on stream one
-    CUDA_CHECK(cuMemcpyHtoDAsync(d_input, h_input, N * sizeof(float), stream1));
+    checkError(cuMemcpyHtoDAsync(d_input, h_input, N * sizeof(float), stream1));
     // Set up kernel parameters
     void *args1[] = {&d_input, &d_output, &N};
     void *args2[] = {&d_output, &d_input, &N};
     // Launch kernel function for forward propagation on stream one
-    CUDA_CHECK(cuLaunchKernel(kernel1, N / 256, 1, 1, 256, 1, 1, 0, stream1, args1, NULL));
+    checkError(cuLaunchKernel(kernel1, N / 256, 1, 1, 256, 1, 1, 0, stream1, args1, NULL));
     // Create an event to record the completion of forward propagation
     CUevent event;
-    CUDA_CHECK(cuEventCreate(&event, CU_EVENT_DEFAULT));
-    CUDA_CHECK(cuEventRecord(event, stream1));
+    checkError(cuEventCreate(&event, CU_EVENT_DEFAULT));
+    checkError(cuEventRecord(event, stream1));
     // Launch kernel function for backward propagation on stream two
     // Wait for the event before launching the kernel
-    CUDA_CHECK(cuStreamWaitEvent(stream2, event, 0));
-    CUDA_CHECK(cuLaunchKernel(kernel2, N / 256, 1, 1, 256, 1, 1, 0, stream2, args2, NULL));
+    checkError(cuStreamWaitEvent(stream2, event, 0));
+    checkError(cuLaunchKernel(kernel2, N / 256, 1, 1, 256, 1, 1, 0, stream2, args2, NULL));
     // Copy output data back to host memory on stream two
-    CUDA_CHECK(cuMemcpyDtoHAsync(h_output, d_input, N * sizeof(float), stream2));
+    checkError(cuMemcpyDtoHAsync(h_output, d_input, N * sizeof(float), stream2));
     // Synchronize stream two
-    CUDA_CHECK(cuStreamSynchronize(stream2));
+    checkError(cuStreamSynchronize(stream2));
     // Verify the results
     for (int j = 0; j < N; j++) {
       ASSERT_FLOAT_EQ(h_output[j], h_input[j] * h_input[j] * h_input[j]);
     }
   }
   // Free host and device memory
-  CUDA_CHECK(cuMemFreeHost(h_input));
-  CUDA_CHECK(cuMemFreeHost(h_output));
-  CUDA_CHECK(cuMemFree(d_input));
-  CUDA_CHECK(cuMemFree(d_output));
+  checkError(cuMemFreeHost(h_input));
+  checkError(cuMemFreeHost(h_output));
+  checkError(cuMemFree(d_input));
+  checkError(cuMemFree(d_output));
   // Destroy streams and event
-  CUDA_CHECK(cuStreamDestroy(stream1));
-  CUDA_CHECK(cuStreamDestroy(stream2));
-  CUDA_CHECK(cuEventDestroy(event));
+  checkError(cuStreamDestroy(stream1));
+  checkError(cuStreamDestroy(stream2));
+  checkError(cuEventDestroy(event));
 }
 
 // Run all the tests

@@ -6,12 +6,6 @@
 #include <cstdlib>
 #include <fstream>
 
-// Define a macro to check cuda errors
-#define CUDA_CHECK(call) \
-  do { \
-    CUresult error = call; \
-    ASSERT_EQ(error, CUDA_SUCCESS) << "CUDA error: " << error; \
-  } while (0)
 
 // Define a test fixture class for cuda driver api
 class CudaDriverTest : public ::testing::Test {
@@ -19,21 +13,21 @@ class CudaDriverTest : public ::testing::Test {
   // Set up the test environment
   void SetUp() override {
     // Initialize the cuda driver api
-    CUDA_CHECK(cuInit(0));
+    checkError(cuInit(0));
     // Get the first device handle
-    CUDA_CHECK(cuDeviceGet(&device_, 0));
+    checkError(cuDeviceGet(&device_, 0));
     // Create a context for the device
-    CUDA_CHECK(cuCtxCreate(&context_, 0, device_));
+    checkError(cuCtxCreate(&context_, 0, device_));
     // Load the module containing the kernel functions
-    CUDA_CHECK(cuModuleLoad(&module_, "kernel.ptx"));
+    checkError(cuModuleLoad(&module_, "kernel.ptx"));
   }
 
   // Tear down the test environment
   void TearDown() override {
     // Unload the module
-    CUDA_CHECK(cuModuleUnload(module_));
+    checkError(cuModuleUnload(module_));
     // Destroy the context
-    CUDA_CHECK(cuCtxDestroy(context_));
+    checkError(cuCtxDestroy(context_));
   }
 
   // Declare some common variables
@@ -46,18 +40,18 @@ class CudaDriverTest : public ::testing::Test {
 TEST_F(CudaDriverTest, StressTestOne) {
   // Create a stream
   CUstream stream;
-  CUDA_CHECK(cuStreamCreate(&stream, CU_STREAM_DEFAULT));
+  checkError(cuStreamCreate(&stream, CU_STREAM_DEFAULT));
   // Get the kernel function handles
   CUfunction kernel1, kernel2;
-  CUDA_CHECK(cuModuleGetFunction(&kernel1, module_, "aes_encrypt"));
-  CUDA_CHECK(cuModuleGetFunction(&kernel2, module_, "aes_decrypt"));
+  checkError(cuModuleGetFunction(&kernel1, module_, "aes_encrypt"));
+  checkError(cuModuleGetFunction(&kernel2, module_, "aes_decrypt"));
   // Allocate host and device memory for input and output files
   const int N = 1024;
   unsigned char *h_input, *h_output, *d_input, *d_output;
-  CUDA_CHECK(cuMemAllocHost((void**)&h_input, N * sizeof(unsigned char)));
-  CUDA_CHECK(cuMemAllocHost((void**)&h_output, N * sizeof(unsigned char)));
-  CUDA_CHECK(cuMemAlloc(&d_input, N * sizeof(unsigned char)));
-  CUDA_CHECK(cuMemAlloc(&d_output, N * sizeof(unsigned char)));
+  checkError(cuMemAllocHost((void**)&h_input, N * sizeof(unsigned char)));
+  checkError(cuMemAllocHost((void**)&h_output, N * sizeof(unsigned char)));
+  checkError(cuMemAlloc(&d_input, N * sizeof(unsigned char)));
+  checkError(cuMemAlloc(&d_output, N * sizeof(unsigned char)));
   // Repeat the encryption and decryption for 100 times
   for (int i = 0; i < 100; i++) {
     // Read the input file
@@ -66,7 +60,7 @@ TEST_F(CudaDriverTest, StressTestOne) {
     fin.read((char*)h_input, N);
     fin.close();
     // Copy input file to device memory on stream
-    CUDA_CHECK(cuMemcpyHtoDAsync(d_input, h_input, N * sizeof(unsigned char), stream));
+    checkError(cuMemcpyHtoDAsync(d_input, h_input, N * sizeof(unsigned char), stream));
     // Generate random key and iv
     unsigned char key[16], iv[16];
     for (int j = 0; j < 16; j++) {
@@ -77,13 +71,13 @@ TEST_F(CudaDriverTest, StressTestOne) {
     void *args1[] = {&d_input, &d_output, &key, &iv};
     void *args2[] = {&d_output, &d_input, &key, &iv};
     // Launch kernel function for encryption on stream
-    CUDA_CHECK(cuLaunchKernel(kernel1, N / 256, 1, 1, 256, 1, 1, 0, stream, args1, NULL));
+    checkError(cuLaunchKernel(kernel1, N / 256, 1, 1, 256, 1, 1, 0, stream, args1, NULL));
     // Launch kernel function for decryption on stream
-    CUDA_CHECK(cuLaunchKernel(kernel2, N / 256, 1, 1, 256, 1, 1, 0, stream, args2, NULL));
+    checkError(cuLaunchKernel(kernel2, N / 256, 1, 1, 256, 1, 1, 0, stream, args2, NULL));
     // Copy output file back to host memory on stream
-    CUDA_CHECK(cuMemcpyDtoHAsync(h_output, d_input, N * sizeof(unsigned char), stream));
+    checkError(cuMemcpyDtoHAsync(h_output, d_input, N * sizeof(unsigned char), stream));
     // Synchronize stream
-    CUDA_CHECK(cuStreamSynchronize(stream));
+    checkError(cuStreamSynchronize(stream));
     // Save the output file
     std::ofstream fout("output.txt", std::ios::binary);
     ASSERT_TRUE(fout) << "Cannot open output file";
@@ -95,12 +89,12 @@ TEST_F(CudaDriverTest, StressTestOne) {
     }
   }
   // Free host and device memory
-  CUDA_CHECK(cuMemFreeHost(h_input));
-  CUDA_CHECK(cuMemFreeHost(h_output));
-  CUDA_CHECK(cuMemFree(d_input));
-  CUDA_CHECK(cuMemFree(d_output));
+  checkError(cuMemFreeHost(h_input));
+  checkError(cuMemFreeHost(h_output));
+  checkError(cuMemFree(d_input));
+  checkError(cuMemFree(d_output));
   // Destroy stream
-  CUDA_CHECK(cuStreamDestroy(stream));
+  checkError(cuStreamDestroy(stream));
 }
 
 // Define a test case for stress test two
@@ -109,20 +103,20 @@ TEST_F(CudaDriverTest, StressTestTwo) {
   const int K = 4;
   CUstream streams[K];
   for (int i = 0; i < K; i++) {
-    CUDA_CHECK(cuStreamCreate(&streams[i], CU_STREAM_DEFAULT));
+    checkError(cuStreamCreate(&streams[i], CU_STREAM_DEFAULT));
   }
   // Get the kernel function handles
   CUfunction kernel1, kernel2;
-  CUDA_CHECK(cuModuleGetFunction(&kernel1, module_, "quicksort"));
-  CUDA_CHECK(cuModuleGetFunction(&kernel2, module_, "binary_search"));
+  checkError(cuModuleGetFunction(&kernel1, module_, "quicksort"));
+  checkError(cuModuleGetFunction(&kernel2, module_, "binary_search"));
   // Allocate host and device memory for input and output arrays
   const int N = 1000000;
   int *h_input[K], *h_output[K], *d_input[K], *d_output[K];
   for (int i = 0; i < K; i++) {
-    CUDA_CHECK(cuMemAllocHost((void**)&h_input[i], N * sizeof(int)));
-    CUDA_CHECK(cuMemAllocHost((void**)&h_output[i], sizeof(int)));
-    CUDA_CHECK(cuMemAlloc(&d_input[i], N * sizeof(int)));
-    CUDA_CHECK(cuMemAlloc(&d_output[i], sizeof(int)));
+    checkError(cuMemAllocHost((void**)&h_input[i], N * sizeof(int)));
+    checkError(cuMemAllocHost((void**)&h_output[i], sizeof(int)));
+    checkError(cuMemAlloc(&d_input[i], N * sizeof(int)));
+    checkError(cuMemAlloc(&d_output[i], sizeof(int)));
   }
   // Repeat the sorting and searching for 100 times
   for (int i = 0; i < 100; i++) {
@@ -136,7 +130,7 @@ TEST_F(CudaDriverTest, StressTestTwo) {
     }
     // Copy input arrays to device memory on streams
     for (int j = 0; j < K; j++) {
-      CUDA_CHECK(cuMemcpyHtoDAsync(d_input[j], h_input[j], N * sizeof(int), streams[j]));
+      checkError(cuMemcpyHtoDAsync(d_input[j], h_input[j], N * sizeof(int), streams[j]));
     }
     // Set up kernel parameters
     void *args1[K][3];
@@ -152,19 +146,19 @@ TEST_F(CudaDriverTest, StressTestTwo) {
     }
     // Launch kernel function for sorting on streams
     for (int j = 0; j < K; j++) {
-      CUDA_CHECK(cuLaunchKernel(kernel1, 1, 1, 1, 1, 1, 1, 0, streams[j], args1[j], NULL));
+      checkError(cuLaunchKernel(kernel1, 1, 1, 1, 1, 1, 1, 0, streams[j], args1[j], NULL));
     }
     // Launch kernel function for searching on streams
     for (int j = 0; j < K; j++) {
-      CUDA_CHECK(cuLaunchKernel(kernel2, N / 256, 1, 1, 256, 1, 1, 0, streams[j], args2[j], NULL));
+      checkError(cuLaunchKernel(kernel2, N / 256, 1, 1, 256, 1, 1, 0, streams[j], args2[j], NULL));
     }
     // Copy output arrays back to host memory on streams
     for (int j = 0; j < K; j++) {
-      CUDA_CHECK(cuMemcpyDtoHAsync(h_output[j], d_output[j], sizeof(int), streams[j]));
+      checkError(cuMemcpyDtoHAsync(h_output[j], d_output[j], sizeof(int), streams[j]));
     }
     // Synchronize streams
     for (int j = 0; j < K; j++) {
-      CUDA_CHECK(cuStreamSynchronize(streams[j]));
+      checkError(cuStreamSynchronize(streams[j]));
     }
     // Verify the results
     for (int j = 0; j < K; j++) {
@@ -182,14 +176,14 @@ TEST_F(CudaDriverTest, StressTestTwo) {
   }
   // Free host and device memory
   for (int i = 0; i < K; i++) {
-    CUDA_CHECK(cuMemFreeHost(h_input[i]));
-    CUDA_CHECK(cuMemFreeHost(h_output[i]));
-    CUDA_CHECK(cuMemFree(d_input[i]));
-    CUDA_CHECK(cuMemFree(d_output[i]));
+    checkError(cuMemFreeHost(h_input[i]));
+    checkError(cuMemFreeHost(h_output[i]));
+    checkError(cuMemFree(d_input[i]));
+    checkError(cuMemFree(d_output[i]));
   }
   // Destroy streams
   for (int i = 0; i < K; i++) {
-    CUDA_CHECK(cuStreamDestroy(streams[i]));
+    checkError(cuStreamDestroy(streams[i]));
   }
 }
 

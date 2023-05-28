@@ -5,11 +5,14 @@
 #include <string.h>
 #include <sys/resource.h>
 #include <chrono>
+#include <cstdlib>
+#include <fstream>
 #include <future>
 #include <iostream>
 #include <random>
 #include <thread>
 #include <vector>
+#include <pthread.h>
 
 void performOperations(int* p, size_t alloc_size);
 void initarray(int* p, size_t alloc_size);
