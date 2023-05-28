@@ -43,7 +43,7 @@ TEST(CuDeviceTest_, AC_OT_DeviceGet_MultipleDevicesDeviceGet) {
 TEST(CuDeviceTest_, AC_BA_DeviceGet_NoDeviceDeviceGet) {
     int count;
     cuDeviceGetCount(&count);
-    if (count == 0) {
+    if(count == 0){
         CUdevice device;
         CUresult status = cuDeviceGet(&device, 0);
         EXPECT_EQ(status, CUDA_ERROR_NO_DEVICE);
@@ -84,9 +84,9 @@ TEST(CuDeviceTest_, MTH_Device_DeviceGet) {
         th.join();
     }
     auto end_out = std::chrono::high_resolution_clock::now();
-    auto duration_out = std::chrono::duration_cast<std::chrono::milliseconds>(
-                            end_out - start_out)
-                            .count();
+    auto duration_out =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end_out - start_out)
+            .count();
     EXPECT_LT(duration_out, 11);
 }
 

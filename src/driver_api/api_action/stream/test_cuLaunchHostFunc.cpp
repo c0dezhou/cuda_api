@@ -1,5 +1,6 @@
 #include "stream_tests.h"
 
+
 TEST_F(CuStreamTests, AC_BA_LaunchHostFunc_ValidHostFunction) {
     auto hostFunc = [](void* userData) {
         std::atomic<int>* counter = static_cast<std::atomic<int>*>(userData);
@@ -19,7 +20,7 @@ TEST_F(CuStreamTests, AC_BA_LaunchHostFunc_ValidHostFunction) {
 TEST_F(CuStreamTests, AC_INV_LaunchHostFunc_InvalidHostFunction) {
     auto invalidHostFunc = [](void* userData) {
         CUdevice cuDevice;
-        cuDeviceGet(&cuDevice, 0);
+        cuDeviceGet(&cuDevice, 0); 
     };
 
     CUresult result = cuLaunchHostFunc(cuStream, invalidHostFunc, nullptr);
@@ -29,6 +30,7 @@ TEST_F(CuStreamTests, AC_INV_LaunchHostFunc_InvalidHostFunction) {
 }
 
 std::atomic<int> orderCounter(0);
+
 
 void hostFunc1(void* userData) {
     int* orderArray = static_cast<int*>(userData);

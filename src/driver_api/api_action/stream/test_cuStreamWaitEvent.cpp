@@ -1,12 +1,17 @@
 #include "stream_tests.h"
 
-TEST_F(CuStreamTests, StreamWaitEvent_WaitForEventCompletion) {
+TEST_F(CuStreamTests, AC_BA_StreamWaitEvent_WaitForEventCompletion) {
     // TODO: 解决 renew res2 = 0
-    // 此代码正在创建两个 CUDA 流并在每个流中启动一个内核。 CUDA 事件用于同步流，这样第二个流中的操作会一直等待，直到事件被记录在第一个流中。
+    // 此代码正在创建两个 CUDA 流并在每个流中启动一个内核。 CUDA
+    // 事件用于同步流，这样第二个流中的操作会一直等待，直到事件被记录在第一个流中。
 
-// 关键的观察是，在将结果从设备复制到主机之前，正在同步两个流。 但是，第二个内核启动到第二个流 (cuStream2)，并且不能保证它在 cuMemcpyDtoH 调用 result2 之前完成执行。 即使正在同步 cuStream2，内核执行也可能尚未完成，因为 cuStreamWaitEvent 仅确保 cuStream2 等待 cuStream1 中的操作完成。 它不会阻塞 CPU 线程。
+    // 在将结果从设备复制到主机之前，正在同步两个流。
+    // 但是，第二个内核启动到第二个流 (cuStream2)，并且不能保证它在 cuMemcpyDtoH
+    // 调用 result2 之前完成执行。 即使正在同步
+    // cuStream2，内核执行也可能尚未完成，因为 cuStreamWaitEvent 仅确保
+    // cuStream2 等待 cuStream1 中的操作完成。 它不会阻塞 CPU 线程。
 
-// 解决方案是在第二次内核启动后添加另一个事件，然后等待此事件完成，然后再将数据复制回主机：
+    // 所以解决方案是在第二次内核启动后添加另一个事件，然后等待此事件完成，然后再将数据复制回主机：
     CUstream cuStream1, cuStream2;
     cuStreamCreate(&cuStream1, 0);
     cuStreamCreate(&cuStream2, CU_STREAM_NON_BLOCKING);
@@ -17,14 +22,14 @@ TEST_F(CuStreamTests, StreamWaitEvent_WaitForEventCompletion) {
     int result = 0;
     int* d_result;
     cuMemAlloc((CUdeviceptr*)&d_result, sizeof(int));
-    cuMemsetD32((CUdeviceptr)d_result, 0, 1);  // Initialize device memory
+    cuMemsetD32((CUdeviceptr)d_result, 0, 1);
 
     int input_a = 5;
     int input_b = 7;
 
     void* args[] = {&input_a, &input_b, &d_result};
     cuLaunchKernel(cuFunction, 1, 1, 1, 1, 1, 1, 0, cuStream1, args, nullptr);
-    cuStreamSynchronize(cuStream1);  // Ensure the kernel has finished
+    cuStreamSynchronize(cuStream1);
 
     cuEventRecord(event, cuStream1);
 
@@ -33,7 +38,7 @@ TEST_F(CuStreamTests, StreamWaitEvent_WaitForEventCompletion) {
     int result2 = 0;
     int* d_result2;
     cuMemAlloc((CUdeviceptr*)&d_result2, sizeof(int));
-    cuMemsetD32((CUdeviceptr)d_result2, 0, 1);  // Initialize device memory
+    cuMemsetD32((CUdeviceptr)d_result2, 0, 1);
 
     void* args1[] = {&input_a, &input_b, &d_result2};
     cuLaunchKernel(cuFunction, 1, 1, 1, 1, 1, 1, 0, cuStream2, args, nullptr);
@@ -48,7 +53,6 @@ TEST_F(CuStreamTests, StreamWaitEvent_WaitForEventCompletion) {
 
     cuMemcpyDtoH(&result, (CUdeviceptr)d_result, sizeof(int));
     cuMemcpyDtoH(&result2, (CUdeviceptr)d_result2, sizeof(int));
-
 
     EXPECT_EQ(result, input_a + input_b);
     EXPECT_EQ(result2, input_a + input_b);

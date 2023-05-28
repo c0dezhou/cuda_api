@@ -1,7 +1,7 @@
 #include "memory_tests.h"
 
-#define INIT_POINT() \
-    int* p;          \
+#define INIT_POINT()    \
+    int* p;  \
     cuMemAllocHost((void**)&p, sizeof(int));
 
 TEST_F(CuMemTest, AC_BA_cuMemFreeHost_MemFreeHostSuccess) {
@@ -27,7 +27,7 @@ TEST_F(CuMemTest, AC_INV_cuMemFreeHost_DoubleFree) {
 
 TEST_F(CuMemTest, AC_SA_cuMemFreeHost_SyncBehavior) {
     // TODO：待确认
-    GTEST_SKIP();  // due to core dump
+    GTEST_SKIP(); // due to core dump
     INIT_POINT();
     CUdeviceptr d;
     cuMemAlloc(&d, sizeof(int));

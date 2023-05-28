@@ -1,11 +1,11 @@
-#include "cuda_runtime.h"
 #include "memory_tests.h"
+#include "cuda_runtime.h"
 
 #define INIT_MEMD2D()                \
     CUdeviceptr d_src_;              \
     CUdeviceptr d_dst_;              \
     int* h_ptr_;                     \
-    static const size_t N = 5;       \
+    static const size_t N = 5;     \
     size_t size = N * sizeof(int);   \
     cuMemAlloc(&d_src_, size);       \
     cuMemAlloc(&d_dst_, size);       \
@@ -68,14 +68,14 @@ TEST_F(CuMemTest, AC_EG_MemcpyDtoD_HoleDeviceMem) {
 }
 
 TEST_F(CuMemTest, AC_OT_MemcpyDtoD_OverlapMem) {
-    // TODO: 解决
-    //  正在尝试执行源和目标范围重叠的设备到设备内存复制操作。 CUDA
+    // TODO：解决
+    //  正在尝试执行源和目标范围 重叠 的设备到设备内存复制操作。 CUDA
     //  文档指出：“使用不满足这些条件的 srcDevice 和 dstDevice 指针调用
     //  cuMemcpyDtoD() 会导致未定义的行为。”
     CUdeviceptr d_src_;
     CUdeviceptr d_dst_;
     int* h_ptr_;
-    static const size_t N = 5;
+    static const size_t N = 5; //n是5导致了重叠？
     size_t size = N * sizeof(int);
     cuMemAlloc(&d_src_, size);
     cuMemAlloc(&d_dst_, size);
@@ -85,8 +85,6 @@ TEST_F(CuMemTest, AC_OT_MemcpyDtoD_OverlapMem) {
     }
     cuMemcpyHtoD(d_src_, h_ptr_, size);
 
-    // The source and destination ranges for cuMemcpyDtoD should not overlap
-    // We'll just copy to the beginning of d_dst_
     res = cuMemcpyDtoD(d_dst_, d_src_, size / 2);
     EXPECT_EQ(res, CUDA_SUCCESS);
 
@@ -95,11 +93,10 @@ TEST_F(CuMemTest, AC_OT_MemcpyDtoD_OverlapMem) {
     cuMemcpyDtoH(h_ptr_, d_dst_, size);
 
     for (size_t i = 0; i < N / 2; i++) {
-        EXPECT_EQ(h_ptr_[i], i);  // These should match the original data
+        EXPECT_EQ(h_ptr_[i], i);
     }
     for (size_t i = N / 2; i < N; i++) {
-        EXPECT_EQ(h_ptr_[i],
-                  0);  // These have not been written to, should be zero
+        EXPECT_EQ(h_ptr_[i], 0);
     }
 
     delete[] h_ptr_;
@@ -118,7 +115,7 @@ TEST_F(CuMemTest, AC_SA_MemcpyDtoD_SyncBehavior) {
     cuMemcpyDtoH(h_ptr_, d_dst_, size);
 
     for (size_t i = 0; i < N; i++) {
-        EXPECT_EQ(h_ptr_[i], i);
+        EXPECT_EQ(h_ptr_[i], i); 
     }
 
     cuStreamDestroy(hStream);

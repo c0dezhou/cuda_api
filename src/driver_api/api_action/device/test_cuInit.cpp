@@ -52,9 +52,9 @@ TEST(CuDeviceTest_, MTH_Device_INit_AsynchronousBehavior) {
         th.join();
     }
     auto end_out = std::chrono::high_resolution_clock::now();
-    auto duration_out = std::chrono::duration_cast<std::chrono::milliseconds>(
-                            end_out - start_out)
-                            .count();
+    auto duration_out =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end_out - start_out)
+            .count();
     EXPECT_LT(duration_out, 11);
 }
 

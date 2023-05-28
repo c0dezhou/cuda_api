@@ -44,15 +44,18 @@ TEST_F(CuEventTest, AC_BA_EventCreate_CreateMultiple) {
     // create multiple events
     const int num_events = 10;
     CUevent events[num_events];
-    for (int i = 0; i < num_events; i++) {
+    for (int i = 0; i < num_events; i++)
+    {
         cuEventCreate(&events[i], CU_EVENT_DEFAULT);
     }
 
-    for (int i = 0; i < num_events; i++) {
+    for (int i = 0; i < num_events; i++)
+    {
         EXPECT_NE((CUevent) nullptr, events[i]);
     }
 
-    for (int i = 0; i < num_events; i++) {
+    for (int i = 0; i < num_events; i++)
+    {
         cuEventDestroy(events[i]);
     }
 }

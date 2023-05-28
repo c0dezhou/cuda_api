@@ -13,7 +13,7 @@ TEST_F(CuEventTest, AC_INV_EventDestroy_DestroyInvalidEvent) {
 }
 
 TEST_F(CuEventTest, AC_INV_EventDestroy_DestroyConsumedEvent) {
-    GTEST_SKIP();  // due to core dump
+    GTEST_SKIP(); // due to core dump
     CUevent event_;
     cuEventCreate(&event_, CU_EVENT_DEFAULT);
     std::thread destroyThread(&CuEventTest::destroyEvent, &event_);
@@ -42,11 +42,12 @@ TEST_F(CuEventTest, AC_INV_EventDestroy_DestroyEventUsedInWait) {
     cuEventCreate(&event_, CU_STREAM_DEFAULT);
     cuStreamWaitEvent(stream, event_, 0);
 
-    // Add some operation to the stream here, so it's not completed yet
-    // ...
+    // delay
+    float sec = 3;
+    void* args[] = {&sec};
+    result =
+        cuLaunchKernel(func_delay, 1, 1, 1, 1, 1, 1, 0, stream, args, nullptr);
 
-    // cuEventQuery should return CUDA_ERROR_NOT_READY if the event hasn't
-    // completed yet
     result = cuEventQuery(event_);
     EXPECT_EQ(CUDA_ERROR_NOT_READY, result);
 
@@ -56,10 +57,10 @@ TEST_F(CuEventTest, AC_INV_EventDestroy_DestroyEventUsedInWait) {
 
 TEST_F(CuEventTest, AC_INV_EventDestroy_DestroyEventByAnotherStream) {
     // TODO: 解决
-    // CUDA 事件不绑定到特定流；
+    // 事件不绑定到特定流
     // 它们本质上是时间标记，可以记录在一个流中，然后在任何其他流（或同一流）中等待。
-    // 因此，尝试使用与记录事件不同的流来销毁事件不是错误。
-    // 事件的销毁独立于流，因此 CUDA 允许这么做
+    // 因此，尝试使用与记录事件不同的流来销毁事件不会报错。
+    // 事件的销毁独立于流，因此可以用其他流销毁
     CUstream stream1, stream2;
 
     cuStreamCreate(&stream1, CU_STREAM_DEFAULT);

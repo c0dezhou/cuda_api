@@ -12,7 +12,7 @@ TEST_F(CuMemTest, AC_BA_MemGetInfo_BasicBehavior) {
     INIT_GETMEMINFO();
     cuMemGetInfo(&free, &total);
 
-    EXPECT_GT(free, 0);  // >
+    EXPECT_GT(free, 0); // >
     EXPECT_GT(total, 0);
 
     EXPECT_LE(free, total);
@@ -46,11 +46,11 @@ TEST_F(CuMemTest, AC_EG_MemGetInfo_MaxGetMemInfo) {
     result = cuMemAlloc(&d_ptr, free_before);
     EXPECT_EQ(result, CUDA_ERROR_OUT_OF_MEMORY);
 
-    result = cuMemAlloc(&d_ptr, free_before - 1024 * 1024 * 1024);
+    result = cuMemAlloc(&d_ptr, free_before - 1024*1024*1024);
     EXPECT_EQ(result, CUDA_SUCCESS);
 
     cuMemGetInfo(&free_after, &total);
-    EXPECT_NEAR(free_after, 0, 1024 * 1024 * 1024);
+    EXPECT_NEAR(free_after, 0, 1024*1024*1024);
 
     cuMemFree(d_ptr);
 }
@@ -58,7 +58,7 @@ TEST_F(CuMemTest, AC_EG_MemGetInfo_MaxGetMemInfo) {
 TEST_F(CuMemTest, AC_OT_MemGetInfo_MultiContextGetMemInfo) {
     CUcontext context2;
 
-    size_t free2, free1, total1, total2;
+    size_t free2,free1,total1,total2;
 
     cuMemGetInfo(&free1, &total1);
 
@@ -67,7 +67,7 @@ TEST_F(CuMemTest, AC_OT_MemGetInfo_MultiContextGetMemInfo) {
 
     cuMemGetInfo(&free2, &total2);
 
-    EXPECT_NEAR(free2, free1, 1024 * 1024 * 600);
+    EXPECT_NEAR(free2, free1, 1024*1024*600);
     EXPECT_EQ(total2, total1);
 
     cuCtxDestroy(context2);

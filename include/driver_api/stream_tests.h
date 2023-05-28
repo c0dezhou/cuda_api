@@ -17,7 +17,7 @@ protected:
         cuStreamCreate(&cuStream, 0);
         cuModuleLoad(&cuModule,
                      "/data/system/yunfan/cuda_api/common/cuda_kernel/"
-                     "cuda_kernel_sm_75.ptx");
+                     "cuda_kernel_sm_80.ptx");
         cuModuleGetFunction(&cuFunction, cuModule, "_Z3addiiPi");
     }
 

@@ -1,11 +1,11 @@
 #include "module_tests.h"
 
 TEST_F(cuModuleTest, AC_BA_ModuleLoad_BasicBehavior) {
-    CUresult res = cuModuleLoad(&module_sm75, fname_sm75);
+    CUresult res = cuModuleLoad(&module_sm80, fname_sm80);
     EXPECT_EQ(res, CUDA_SUCCESS);
     if (res == CUDA_SUCCESS) {
         CUfunction function;
-        res = cuModuleGetFunction(&function, module_sm75, "_Z6vecAddPfS_S_");
+        res = cuModuleGetFunction(&function, module_sm80, "_Z6vecAddPfS_S_");
         EXPECT_EQ(res, CUDA_SUCCESS);
         if (res == CUDA_SUCCESS) {
             int N = 1024;
@@ -27,7 +27,7 @@ TEST_F(cuModuleTest, AC_BA_ModuleLoad_BasicBehavior) {
             EXPECT_EQ(res, CUDA_SUCCESS);
             res = cuMemcpyHtoD(d_B, h_B, N * sizeof(float));
             EXPECT_EQ(res, CUDA_SUCCESS);
-
+            
             void* args[] = {&d_A, &d_B, &d_C, &N};
             int blockSize = 256;
             int gridSize = (N + blockSize - 1) / blockSize;
@@ -54,7 +54,7 @@ TEST_F(cuModuleTest, AC_BA_ModuleLoad_BasicBehavior) {
             res = cuMemFree(d_C);
             EXPECT_EQ(res, CUDA_SUCCESS);
         }
-        res = cuModuleUnload(module_sm75);
+        res = cuModuleUnload(module_sm80);
         EXPECT_EQ(res, CUDA_SUCCESS);
     }
 }
@@ -62,7 +62,7 @@ TEST_F(cuModuleTest, AC_BA_ModuleLoad_BasicBehavior) {
 TEST_F(cuModuleTest, AC_INV_ModuleLoad_INvalidfname) {
     const char* fname = "invalid_file";
 
-    CUresult res = cuModuleLoad(&module_sm75, fname);
+    CUresult res = cuModuleLoad(&module_sm80, fname);
     EXPECT_EQ(res, CUDA_ERROR_FILE_NOT_FOUND);
 }
 
@@ -72,26 +72,27 @@ TEST_F(cuModuleTest, AC_EG_ModuleLoad_Longfilename) {
         "cuda_kernel_long_long_long_long_long_long_long_long_long_long_long_"
         "long_long.ptx";
 
-    CUresult res = cuModuleLoad(&module_sm75, fname);
+    CUresult res = cuModuleLoad(&module_sm80, fname);
     if (res == CUDA_SUCCESS) {
         CUfunction function;
-        res = cuModuleGetFunction(&function, module_sm75, "_Z6vecAddPfS_S_");
+        res = cuModuleGetFunction(&function, module_sm80, "_Z6vecAddPfS_S_");
         EXPECT_EQ(res, CUDA_SUCCESS);
-        res = cuModuleUnload(module_sm75);
+        res = cuModuleUnload(module_sm80);
         EXPECT_EQ(res, CUDA_SUCCESS);
-    } else {
+    }
+    else {
         CUfunction function;
-        res = cuModuleGetFunction(&function, module_sm75, "_Z6vecAddPfS_S_");
+        res = cuModuleGetFunction(&function, module_sm80, "_Z6vecAddPfS_S_");
         EXPECT_NE(res, CUDA_SUCCESS);
     }
 }
 
 TEST_F(cuModuleTest, AC_SA_ModuleLoad_SyncBehavior) {
-    CUresult res = cuModuleLoad(&module_sm75, fname_sm75);
+        CUresult res = cuModuleLoad(&module_sm80, fname_sm80);
     EXPECT_EQ(res, CUDA_SUCCESS);
     if (res == CUDA_SUCCESS) {
         CUfunction function;
-        res = cuModuleGetFunction(&function, module_sm75, "_Z6vecAddPfS_S_");
+        res = cuModuleGetFunction(&function, module_sm80, "_Z6vecAddPfS_S_");
         EXPECT_EQ(res, CUDA_SUCCESS);
         if (res == CUDA_SUCCESS) {
             int N = 1024;
@@ -152,16 +153,16 @@ TEST_F(cuModuleTest, AC_SA_ModuleLoad_SyncBehavior) {
             res = cuMemFree(d_D);
             EXPECT_EQ(res, CUDA_SUCCESS);
         }
-        res = cuModuleUnload(module_sm75);
+        res = cuModuleUnload(module_sm80);
         EXPECT_EQ(res, CUDA_SUCCESS);
     }
 }
 
 TEST_F(cuModuleTest, AC_OT_ModuleLoad_RepeatedCall) {
     CUmodule module1, module2;
-    CUresult res = cuModuleLoad(&module1, fname_sm75);
+    CUresult res = cuModuleLoad(&module1, fname_sm80);
     EXPECT_EQ(res, CUDA_SUCCESS);
-    res = cuModuleLoad(&module2, fname_sm75);
+    res = cuModuleLoad(&module2, fname_sm80);
     EXPECT_EQ(res, CUDA_SUCCESS);
     if (res == CUDA_SUCCESS) {
         CUfunction function1, function2;
@@ -174,7 +175,7 @@ TEST_F(cuModuleTest, AC_OT_ModuleLoad_RepeatedCall) {
         EXPECT_EQ(res, CUDA_SUCCESS);
         res = cuModuleUnload(module2);
         EXPECT_EQ(res, CUDA_SUCCESS);
-        const char* fname1 = fname_sm75;
+        const char* fname1 = fname_sm80;
         const char* fname2 =
             "/data/system/yunfan/cuda_api/common/cuda_kernel/"
             "cuda_kernel_long_long_long_long_long_long_long_long_long_long_"
@@ -191,7 +192,8 @@ TEST_F(cuModuleTest, AC_OT_ModuleLoad_RepeatedCall) {
             EXPECT_EQ(res, CUDA_SUCCESS);
             res = cuModuleGetFunction(&function2, module2, "add");
             EXPECT_EQ(res, 300);
-            EXPECT_NE(function1, function2);
+            EXPECT_NE(function1,
+                      function2);
             res = cuModuleUnload(module1);
             EXPECT_EQ(res, CUDA_SUCCESS);
             res = cuModuleUnload(module2);

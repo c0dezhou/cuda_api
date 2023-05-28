@@ -91,106 +91,9 @@ TEST_F(CuMemTest, AC_EG_MemcpyHtoDAsync_UnalignedAddr) {
     DEL_MEMH2DAsync();
 }
 
-// TEST_F(CuMemTest, MemcpyHtoDAsync_AsyncBehavior) {
-//     // TODO: 解决 renew 0
-//     CUstream stream1, stream2;
-//     cuStreamCreate(&stream1, 0);
-//     cuStreamCreate(&stream2, 0);
-
-//     CUdeviceptr d_p;
-//     char* h_p;
-//     const size_t size = 1024;
-
-//     // Allocate host memory
-//     CUresult res = cuMemAllocHost((void**)&h_p, size);
-//     EXPECT_EQ(res, CUDA_SUCCESS);
-
-//     // Allocate device memory
-//     res = cuMemAlloc(&d_p, size);
-//     EXPECT_EQ(res, CUDA_SUCCESS);
-
-//     // Initialize host memory
-//     for (size_t i = 0; i < size; i++) {
-//         h_p[i] = i % 256;
-//     }
-
-//     cuMemcpyHtoDAsync(d_p, h_p, size, stream1);
-//     cuMemcpyDtoHAsync(h_p, d_p, size, stream2);
-
-//     CUresult error1 = cuStreamQuery(stream1);
-//     CUresult error2 = cuStreamQuery(stream2);
-//     // EXPECT_TRUE(error1 == CUDA_SUCCESS || error1 == CUDA_ERROR_NOT_READY);
-//     // EXPECT_TRUE(error2 == CUDA_SUCCESS || error2 == CUDA_ERROR_NOT_READY);
-//     EXPECT_TRUE(error1 == CUDA_ERROR_NOT_READY);
-//     EXPECT_TRUE(error2 == CUDA_ERROR_NOT_READY);
-
-//     cuStreamSynchronize(stream1);
-//     cuStreamSynchronize(stream2);
-
-//     error1 = cuStreamQuery(stream1);
-//     error2 = cuStreamQuery(stream2);
-//     EXPECT_EQ(error1, CUDA_SUCCESS);
-//     EXPECT_EQ(error2, CUDA_SUCCESS);
-
-//     for (size_t i = 0; i < size; i++) {
-//         char value = h_p[i];
-//         EXPECT_EQ(value & 0xff, i % 256);
-//     }
-
-//     // Free host and device memory
-//     cuMemFreeHost(h_p);
-//     cuMemFree(d_p);
-
-//     cuStreamDestroy(stream1);
-//     cuStreamDestroy(stream2);
-// }
-
-// TEST_F(CuMemTest, AC_OT_MemcpyHtoDAsync_MultiDevice) {
-//     // TODO: 解决
-//     CUstream stream;
-//     cuStreamCreate(&stream, 0);
-//     CUdeviceptr d_p;
-//     char* h_p;  // Change type to char* for easier manipulation
-//     const size_t size = 1024;
-//     cuMemAllocHost((void**)&h_p, size);
-//     cuMemAlloc(&d_p, size);
-
-//     // Initialize host memory
-//     for (size_t i = 0; i < size; i++) {
-//         h_p[i] = i % 256;
-//     }
-
-//     int deviceCount;
-//     cuDeviceGetCount(&deviceCount);
-//     for (int i = 0; i < deviceCount; i++) {
-//         CUdevice device;
-//         cuDeviceGet(&device, i);
-//         CUcontext contexti;
-//         cuCtxCreate(&contexti, 0, device);
-//         cuCtxPushCurrent(contexti);
-//         CUdeviceptr d_pi;
-//         cuMemAlloc(&d_pi, size);
-//         CUstream streami;
-//         cuStreamCreate(&streami, 0);
-//         cuMemcpyHtoDAsync(d_pi, h_p, size, streami);
-//         cuStreamSynchronize(streami);
-//         for (size_t i = 0; i < size; i++) {
-//             char value;
-//             cuMemcpyDtoH(&value, d_pi + i, sizeof(char));
-//             EXPECT_EQ(value, h_p[i]);
-//         }
-//         cuStreamDestroy(streami);
-//         cuMemFree(d_pi);
-//         cuCtxPopCurrent(&contexti);
-//         cuCtxDestroy(contexti);
-//     }
-//     cuStreamDestroy(stream);
-//     cuMemFreeHost(h_p);
-//     cuMemFree(d_p);
-// }
-
-// renew check
-TEST_F(CuMemTest, MemcpyHtoDAsync_AsyncBehavior) {
+TEST_F(CuMemTest, AC_SA_MemcpyHtoDAsync_AsyncBehavior) {
+    // TODO：解决
+    // GTEST_SKIP();  // due to core dump
     CUstream stream1, stream2;
     CUdeviceptr d_p;
     char* h_p;
@@ -209,7 +112,7 @@ TEST_F(CuMemTest, MemcpyHtoDAsync_AsyncBehavior) {
     cuMemcpyHtoDAsync(d_p, h_p, size, stream1);
 
     cuStreamSynchronize(stream1);
-    
+
     cuMemcpyDtoHAsync(h_p, d_p, size, stream2);
 
     cuStreamSynchronize(stream2);
@@ -227,6 +130,7 @@ TEST_F(CuMemTest, MemcpyHtoDAsync_AsyncBehavior) {
 }
 
 TEST_F(CuMemTest, AC_OT_MemcpyHtoDAsync_MultiDevice) {
+    // TODO：解决
     CUstream stream;
     CUdeviceptr d_p;
     char* h_p;
@@ -278,10 +182,9 @@ TEST_F(CuMemTest, AC_OT_MemcpyHtoDAsync_MultiDevice) {
     cuMemFree(d_p);
 }
 
-
 TEST_F(CuMemTest, AC_OT_MemcpyHtoDAsync_LoopH2DAsync) {
     INIT_MEMH2DAsync();
-    for (size_t i = 0; i < size / sizeof(char); i++) {
+    for (size_t i = 0; i < size/sizeof(char); i++) {
         ((char*)h_p)[i] = i % 256;
     }
     const int loopCount = 10;
@@ -289,11 +192,11 @@ TEST_F(CuMemTest, AC_OT_MemcpyHtoDAsync_LoopH2DAsync) {
         cuMemcpyHtoDAsync(d_p, h_p, size, stream);
     }
     cuStreamSynchronize(stream);
-    for (size_t i = 0; i < size / sizeof(char); i++) {
+    for (size_t i = 0; i < size/sizeof(char); i++) {
         char value;
         cuMemcpyDtoH(&value, d_p + i, 1);
         // & 一下0xff，不然是字符串'0xxx'
-        EXPECT_EQ(value & 0xff, i % 256);
+        EXPECT_EQ(value & 0xff, i % 256); 
     }
     DEL_MEMH2DAsync();
 }

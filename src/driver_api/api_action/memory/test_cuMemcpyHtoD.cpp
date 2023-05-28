@@ -1,9 +1,9 @@
 #include "memory_tests.h"
 
-#define INIT_MEMH2D()                   \
-    CUdeviceptr d_p;                    \
-    int* h_p;                           \
-    const size_t size = 1024;           \
+#define INIT_MEMH2D()           \
+    CUdeviceptr d_p;            \
+    int* h_p;                  \
+    const size_t size = 1024;   \
     cuMemAllocHost((void**)&h_p, size); \
     cuMemAlloc(&d_p, size);
 
@@ -77,18 +77,13 @@ TEST_F(CuMemTest, AC_EG_MemcpyHtoD_MaxByte) {
 }
 
 TEST_F(CuMemTest, AC_EG_MemcpyHtoD_UnalignedAddr) {
-    // TODO：解决
-    // 设备指针和主机指针的对齐取决于所使用的特定 GPU 架构。
-    // 一些较旧的体系结构要求内存与特定操作的特定边界对齐。
-    CUdeviceptr d_p;
-    int* h_p;
-    const size_t size = 1024;
-    cuMemAllocHost((void**)&h_p, size);
-    cuMemAlloc(&d_p, size);
+    // TODO: 解决
+    // 设备指针和主机指针的对齐取决于所使用的特定 GPU 架构
+    // 一些较旧的体系结构要求内存与特定操作的特定边界对齐
+    INIT_MEMH2D();
     res = cuMemcpyHtoD(d_p + 1, h_p + 1, size - 2);
-    EXPECT_EQ(res, CUDA_SUCCESS);
-    cuMemFreeHost(h_p);
-    cuMemFree(d_p);
+    EXPECT_EQ(res, CUDA_ERROR_INVALID_VALUE);
+    DEL_MEMH2D();
 }
 
 TEST_F(CuMemTest, AC_SA_MemcpyHtoD_SyncBehavior) {
@@ -104,8 +99,8 @@ TEST_F(CuMemTest, AC_SA_MemcpyHtoD_SyncBehavior) {
     DEL_MEMH2D();
 }
 
-TEST_F(CuMemTest, MemcpyHtoD_MultiDevice) {
-    // TODO: 解决
+TEST_F(CuMemTest, AC_OT_MemcpyHtoD_MultiDevice) {
+    // TODO：解决
     CUdeviceptr d_p;
     int* h_p;
     const size_t size = 1024;

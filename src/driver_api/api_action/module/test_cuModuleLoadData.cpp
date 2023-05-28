@@ -2,7 +2,7 @@
 
 TEST_F(cuModuleTest, AC_BA_ModuleLoadData_BasicBehavior) {
     // TODO：解决
-    FILE* fp = fopen(fname_sm75, "rb");
+    FILE* fp = fopen(fname_sm80, "rb");
     EXPECT_NE(fp, nullptr);
     fseek(fp, 0, SEEK_END);
     size_t size = ftell(fp);
@@ -41,8 +41,7 @@ TEST_F(cuModuleTest, AC_BA_ModuleLoadData_BasicBehavior) {
             cuLaunchKernel(function, gridSize, 1, 1, blockSize, 1, 1, 0,
                            nullptr, args, nullptr);
 
-            cuCtxSynchronize();  // Make sure the kernel has finished before we
-                                 // copy back the results.
+            cuCtxSynchronize();
 
             cuMemcpyDtoH(h_C, d_C, N * sizeof(float));
             for (int i = 0; i < N; i++) {
@@ -75,5 +74,5 @@ TEST_F(cuModuleTest, AC_INV_ModuleLoadData_InvalidImag) {
 
 TEST_F(cuModuleTest, AC_EG_ModuleLoadData_LargeFile) {
     // TODO: 使用一个最大的文件大小作为参数
-    const char* fname_sm75 = "large_file.cubin";
+    const char* fname_sm80 = "large_file.cubin";
 }

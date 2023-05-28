@@ -30,6 +30,7 @@ TEST_F(CuEventTest, AC_BA_EventElapsedTime_CalculateElapsedTime2stream) {
     cuMemAlloc(&d_dst1, dataSize);
     cuMemAlloc(&d_dst2, dataSize);
 
+
     cuEventRecord(start_, stream1);
     cuMemcpyAsync(d_dst1, d_src, dataSize, stream1);
     cuStreamSynchronize(stream1);
@@ -48,8 +49,7 @@ TEST_F(CuEventTest, AC_BA_EventElapsedTime_CalculateElapsedTime2stream) {
     cuEventSynchronize(end_);
     float elapsedTimeParallel = calculateElapsedTime(start_, end_);
 
-    std::cout << elapsedTimeSequential << " " << elapsedTimeParallel
-              << std::endl;
+    std::cout << elapsedTimeSequential << " " << elapsedTimeParallel << std::endl;
 
     EXPECT_GT(elapsedTimeSequential, 0.0f);
     EXPECT_GT(elapsedTimeParallel, 0.0f);
@@ -99,11 +99,12 @@ TEST_F(CuEventTest, AC_INV_EventElapsedTime_CalculateElapsedTimeSameEvent) {
 
 TEST_F(CuEventTest, AC_BA_EventElapsedTime_CompareToHostRecord) {
     // TODO: 解决
+    // 在record之后用sync同步
     CUstream stream;
     cuStreamCreate(&stream, CU_STREAM_DEFAULT);
 
     cuEventRecord(start_, stream);
-    cuStreamSynchronize(stream);  // Ensure start_ event has completed
+    cuStreamSynchronize(stream);
 
     const int num_iterations = 100000000;
     auto ss = std::chrono::steady_clock::now();
@@ -113,7 +114,7 @@ TEST_F(CuEventTest, AC_BA_EventElapsedTime_CompareToHostRecord) {
     auto ee = std::chrono::steady_clock::now();
 
     cuEventRecord(end_, stream);
-    cuStreamSynchronize(stream);  // Ensure end_ event has completed
+    cuStreamSynchronize(stream);
 
     float hosttime =
         std::chrono::duration_cast<std::chrono::milliseconds>(ee - ss).count();

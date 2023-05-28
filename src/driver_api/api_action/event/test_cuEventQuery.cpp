@@ -14,7 +14,7 @@ TEST_F(CuEventTest, AC_BA_EventQuery_QueryCompletedEvent) {
 
 TEST_F(CuEventTest, AC_INV_EventQuery_QueryIncompleteEvent) {
     // TODO: 解决 未定义行为
-    GTEST_SKIP();  // due to core dump
+    GTEST_SKIP(); // due to core dump
     CUevent event_;
     result = cuEventQuery(event_);
     EXPECT_EQ(CUDA_ERROR_INVALID_VALUE, result);
@@ -22,13 +22,7 @@ TEST_F(CuEventTest, AC_INV_EventQuery_QueryIncompleteEvent) {
 
 TEST_F(CuEventTest, AC_INV_EventQuery_QueryDestroyedEvent) {
     // TODO: 解决
-    // 尝试查询已被销毁的事件。 这会导致未定义的行为。
-
-    // cuEventQuery() 函数应该检查 CUDA
-    // 事件的状态，但在这种情况下，您尝试查询的事件对象已被 cuEventDestroy()
-    // 销毁。 根据 CUDA API，事件一旦被销毁，就不应再次使用。
-    // 这样做可能会或可能不会返回错误，具体取决于 CUDA
-    // 驱动程序实现的细节，但这肯定不是一个好的做法。
+    // 尝试查询已被销毁的事件会导致未定义的行为
     cuEventDestroy(event);
     result = cuEventQuery(event);
     EXPECT_EQ(CUDA_ERROR_INVALID_HANDLE, result);
@@ -79,10 +73,11 @@ TEST_F(CuEventTest, AC_BA_EventQuery_QueryInloop) {
     cuEventRecord(event, stream);
 
     result;
-    do {
-        // std::cout << "yes" << std::endl;
-        // 由于异步，不阻塞host端，可以在等待事件完成时做别的任务
-        result = cuEventQuery(event);
+    do
+    {
+            // std::cout << "yes" << std::endl;
+            // 由于异步，不阻塞host端，可以在等待事件完成时做别的任务
+            result = cuEventQuery(event);
     } while (result == CUDA_ERROR_NOT_READY);
 
     cuStreamSynchronize(stream);
@@ -95,12 +90,16 @@ TEST_F(CuEventTest, AC_INV_EventQuery_QueryDifferentStatus) {
     CUstream stream;
     cuStreamCreate(&stream, CU_STREAM_DEFAULT);
     cuEventRecord(event, stream);
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++)
+    {
         result = cuEventQuery(event);
 
-        if (i == 0) {
+        if (i == 0)
+        {
             EXPECT_EQ(CUDA_ERROR_NOT_READY, result);
-        } else {
+        }
+        else
+        {
             EXPECT_EQ(CUDA_SUCCESS, result);
         }
 

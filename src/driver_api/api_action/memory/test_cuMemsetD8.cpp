@@ -1,9 +1,9 @@
 #include "memory_tests.h"
 
-#define INIT_MEMSETD8()                   \
-    CUdeviceptr d_p;                      \
-    const size_t size = 10 * sizeof(int); \
-    cuMemAlloc(&d_p, 10 * sizeof(int));
+#define INIT_MEMSETD8()                             \
+    CUdeviceptr d_p;                                \
+    const size_t size = 10 * sizeof(unsigned char); \
+    cuMemAlloc(&d_p, 10 * sizeof(unsigned char));
 
 #define DEL_MEMSETD8() cuMemFree(d_p);
 
@@ -85,7 +85,7 @@ TEST_F(CuMemTest, AC_OT_MemsetD8_MultiDeviceSetD8) {
         for (size_t i = 0; i < 10; i++) {
             unsigned char value;
             cuMemcpyDtoH(&value, d_p + i, 1);
-            EXPECT_EQ(value & 0xff, 42);
+            EXPECT_EQ(value, 42);
         }
         cuMemFree(d_p);
         cuCtxPopCurrent(&contexti);
@@ -103,7 +103,7 @@ TEST_F(CuMemTest, LOOP_MemsetD8_LoopSetD8) {
     }
     for (size_t i = 0; i < 10; i++) {
         unsigned char value;
-        cuMemcpyDtoH(&value, d_p + i, sizeof(int));
+        cuMemcpyDtoH(&value, d_p + i, sizeof(unsigned char));
         EXPECT_EQ(value, 42);
     }
     DEL_MEMSETD8();

@@ -41,10 +41,10 @@ TEST_F(CuDeviceTest, AC_INV_DeviceGetAttribute_ExceptionHandling) {
 
     EXPECT_EQ(CUDA_SUCCESS, cuDeviceGet(&device, 0));
     pi = new int;
-    EXPECT_EQ(CUDA_ERROR_INVALID_VALUE,
-              cuDeviceGetAttribute(
-                  pi, (CUdevice_attribute_enum)(CU_DEVICE_ATTRIBUTE_MAX + 1),
-                  device));
+    EXPECT_EQ(
+        CUDA_ERROR_INVALID_VALUE,
+        cuDeviceGetAttribute(
+            pi, (CUdevice_attribute_enum)(CU_DEVICE_ATTRIBUTE_MAX + 1), device));
     delete pi;
 }
 
@@ -82,14 +82,14 @@ TEST_F(CuDeviceTest, AC_BA_DeviceGetAttribute_DeviceDifferences) {
         EXPECT_EQ(minor1, minor2);
 
         if (major1 != major2 || minor1 != minor2) {
-            EXPECT_EQ(CUDA_SUCCESS,
-                      cuDeviceGetAttribute(
-                          &pi1, CU_DEVICE_ATTRIBUTE_MAX_REGISTERS_PER_BLOCK,
-                          device1));
-            EXPECT_EQ(CUDA_SUCCESS,
-                      cuDeviceGetAttribute(
-                          &pi2, CU_DEVICE_ATTRIBUTE_MAX_REGISTERS_PER_BLOCK,
-                          device2));
+            EXPECT_EQ(
+                CUDA_SUCCESS,
+                cuDeviceGetAttribute(
+                    &pi1, CU_DEVICE_ATTRIBUTE_MAX_REGISTERS_PER_BLOCK, device1));
+            EXPECT_EQ(
+                CUDA_SUCCESS,
+                cuDeviceGetAttribute(
+                    &pi2, CU_DEVICE_ATTRIBUTE_MAX_REGISTERS_PER_BLOCK, device2));
             EXPECT_NE(pi1, pi2);
 
             EXPECT_EQ(
@@ -140,17 +140,16 @@ void* thread_func(void* arg) {
         cuDeviceGetAttribute(&pi, CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_X, device));
     EXPECT_GT(pi, 0);
 
-    EXPECT_EQ(
-        CUDA_SUCCESS,
-        cuDeviceGetAttribute(
-            &pi, CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK, device));
+    EXPECT_EQ(CUDA_SUCCESS,
+              cuDeviceGetAttribute(
+                  &pi, CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK, device));
     EXPECT_GT(pi, 0);
 
     return nullptr;
 }
-TEST_F(CuDeviceTest,
-       MTH_Device_DeviceGetAttribute_MultiThreadingDeviceGetAttr) {
+TEST_F(CuDeviceTest, MTH_Device_DeviceGetAttribute_MultiThreadingDeviceGetAttr) {
     if (device_count >= 2) {
+        
         const int num_threads = 4;
         int thread_ids[num_threads];
         pthread_t threads[num_threads];
@@ -182,16 +181,15 @@ void process_func(int process_id) {
         CUDA_SUCCESS,
         cuDeviceGetAttribute(&pi, CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_X, device));
     EXPECT_GT(pi, 0);
-    EXPECT_EQ(
-        CUDA_SUCCESS,
-        cuDeviceGetAttribute(
-            &pi, CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK, device));
+    EXPECT_EQ(CUDA_SUCCESS,
+              cuDeviceGetAttribute(
+                  &pi, CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK, device));
     EXPECT_GT(pi, 0);
     exit(0);
 }
 
 TEST_F(CuDeviceTest, MPROC_Device_DeviceGetAttribute_MultiProcessing) {
-    GTEST_SKIP();  // fork process not init
+    GTEST_SKIP(); // fork process not init
     if (device_count >= 2) {
         const int num_processes = 4;
         pid_t pids[num_processes];
@@ -216,11 +214,13 @@ TEST_F(CuDeviceTest, AC_OT_DeviceGetAttribute_RepeatedCallsFixedAttribute) {
         CUdevice device;
         EXPECT_EQ(CUDA_SUCCESS, cuDeviceGet(&device, i));
         int pi;
-        CUdevice_attribute attrib = CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK;
+        CUdevice_attribute attrib =
+            CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK;
         EXPECT_EQ(CUDA_SUCCESS, cuDeviceGetAttribute(&pi, attrib, device));
         int first_result = pi;
         for (int j = 0; j < 10; j++) {
-            EXPECT_EQ(CUDA_SUCCESS, cuDeviceGetAttribute(&pi, attrib, device));
+            EXPECT_EQ(CUDA_SUCCESS,
+                      cuDeviceGetAttribute(&pi, attrib, device));
             EXPECT_EQ(first_result, pi);
         }
     }
@@ -234,29 +234,31 @@ TEST_F(CuDeviceTest, AC_EG_DeviceGetAttribute_BoundaryValuesActual) {
         int pi;
         int min_value = std::numeric_limits<int>::max();
         int max_value = std::numeric_limits<int>::min();
-        for (int j = 1; j < CU_DEVICE_ATTRIBUTE_MAX - 1; j++) {
+        for (int j = 1; j < CU_DEVICE_ATTRIBUTE_MAX -1; j++) {
             CUdevice_attribute attrib = static_cast<CUdevice_attribute>(j);
 
-            EXPECT_EQ(CUDA_SUCCESS, cuDeviceGetAttribute(&pi, attrib, device))
-                << "error index :" << j;
+            EXPECT_EQ(CUDA_SUCCESS,
+                      cuDeviceGetAttribute(&pi, attrib, device)) << "error index :" << j;
             min_value = std::min(min_value, pi);
             max_value = std::max(max_value, pi);
         }
-        EXPECT_EQ(CUDA_SUCCESS,
-                  cuDeviceGetAttribute(
-                      &pi, CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK, device));
-        EXPECT_GE(pi, min_value);
-        EXPECT_LE(pi, max_value);
-        EXPECT_EQ(CUDA_SUCCESS,
-                  cuDeviceGetAttribute(&pi, CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_X,
-                                       device));
-        EXPECT_GE(pi, min_value);
-        EXPECT_LE(pi, max_value);
         EXPECT_EQ(
             CUDA_SUCCESS,
             cuDeviceGetAttribute(
-                &pi, CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK, device));
+                &pi, CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK, device));
         EXPECT_GE(pi, min_value);
         EXPECT_LE(pi, max_value);
+        EXPECT_EQ(CUDA_SUCCESS,
+                  cuDeviceGetAttribute(
+                      &pi, CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_X, device));
+        EXPECT_GE(pi, min_value);
+        EXPECT_LE(pi, max_value);
+        EXPECT_EQ(CUDA_SUCCESS,
+                  cuDeviceGetAttribute(
+                      &pi, CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK,
+                      device));
+        EXPECT_GE(pi, min_value);
+        EXPECT_LE(pi, max_value);
+
     }
 }

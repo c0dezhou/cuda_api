@@ -26,7 +26,7 @@ TEST_F(CuStreamTests, AC_EG_LaunchKernel_ExceedMaximumThreads) {
                          CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK, cuDevice);
 
     int gridDimX = 2, gridDimY = 2, gridDimZ = 1;
-    int blockDimX = maxThreadsPerBlock + 1, blockDimY = 4, blockDimZ = 1;
+    int blockDimX = maxThreadsPerBlock+1, blockDimY = 4, blockDimZ = 1;
     int sharedMemBytes = 64;
 
     int* d_result;
@@ -37,8 +37,9 @@ TEST_F(CuStreamTests, AC_EG_LaunchKernel_ExceedMaximumThreads) {
 
     void* args[] = {&input_a, &input_b, &d_result};
     CUresult result = cuLaunchKernel(cuFunction, gridDimX, gridDimY, gridDimZ,
-                                     blockDimX, blockDimY, blockDimZ,
-                                     sharedMemBytes, cuStream, args, nullptr);
+                                  blockDimX, blockDimY, blockDimZ,
+                                  sharedMemBytes, cuStream, args, nullptr);
+
 
     EXPECT_EQ(result, CUDA_ERROR_INVALID_VALUE);
 }
@@ -51,7 +52,7 @@ TEST_F(CuStreamTests, AC_EG_LaunchKernel_ExceedMaximumSharedMemory) {
 
     int gridDimX = 2, gridDimY = 2, gridDimZ = 1;
     int blockDimX = 4, blockDimY = 4, blockDimZ = 1;
-    int sharedMemBytes = maxSharedMemoryPerBlock + 1;
+    int sharedMemBytes = maxSharedMemoryPerBlock+1;
 
     int* d_result;
     cuMemAlloc((CUdeviceptr*)&d_result, sizeof(int));
@@ -61,8 +62,8 @@ TEST_F(CuStreamTests, AC_EG_LaunchKernel_ExceedMaximumSharedMemory) {
 
     void* args[] = {&input_a, &input_b, &d_result};
     CUresult result = cuLaunchKernel(cuFunction, gridDimX, gridDimY, gridDimZ,
-                                     blockDimX, blockDimY, blockDimZ,
-                                     sharedMemBytes, cuStream, args, nullptr);
+                                   blockDimX, blockDimY, blockDimZ,
+                                   sharedMemBytes, cuStream, args, nullptr);
 
     EXPECT_EQ(result, CUDA_ERROR_INVALID_VALUE);
 }
