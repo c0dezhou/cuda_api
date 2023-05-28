@@ -5,6 +5,176 @@
 #include "test_utils.h"
 
 
+#include <cuda.h>
+#include <gtest/gtest.h>
+
+// // The kernel function you provided
+// __global__ void vec_multiply_2_withidx(float* data, int startIndex, int endIndex) {
+//     int tid = blockIdx.x * blockDim.x + threadIdx.x;
+//     if (tid >= startIndex && tid < endIndex) {
+//         data[tid] *= 2.0f;
+//     }
+// }
+
+// A test case using gtest
+TEST(CudaDriverApiTest, TwoStreams) {
+    // Initialize the CUDA driver API
+    checkError(cuInit(0));
+
+    // Get the first device
+    CUdevice device;
+    checkError(cuDeviceGet(&device, 0));
+
+    // Create a context
+    CUcontext context;
+    checkError(cuCtxCreate(&context, 0, device));
+    // Allocate two arrays on host memory
+    const int N = 1024;
+    float* h_data1 = new float[N];
+    float* h_data2 = new float[N];
+
+    // Initialize the host arrays with some values
+    for (int i = 0; i < N; i++) {
+        h_data1[i] = i * 0.1f;
+        h_data2[i] = i * 0.2f;
+    }
+
+    // Allocate two arrays on device memory
+    CUdeviceptr d_data1, d_data2;
+    checkError(cuMemAlloc(&d_data1, N * sizeof(float)));
+    checkError(cuMemAlloc(&d_data2, N * sizeof(float)));
+
+    // Create two streams
+    CUstream stream1, stream2;
+    checkError(cuStreamCreate(&stream1, 0));
+    checkError(cuStreamCreate(&stream2, 0));
+
+    // Copy the host arrays to the device arrays asynchronously on the streams
+    // checkError(cuMemcpyHtoDAsync(d_data1, h_data1, N * sizeof(float), stream1));
+    // checkError(cuMemcpyHtoDAsync(d_data2, h_data2, N * sizeof(float), stream2));
+
+    // Set up the kernel parameters
+    void* args1[3] = {&d_data1, &N/4, &N/2};
+    void* args2[3] = {&d_data2, &N/2, &N};
+    
+    // Create two events for each stream
+CUevent start1, stop1, start2, stop2;
+checkError(cuEventCreate(&start1, 0));
+checkError(cuEventCreate(&stop1, 0));
+checkError(cuEventCreate(&start2, 0));
+checkError(cuEventCreate(&stop2, 0));
+// Create two events for the total time
+CUevent start_total, stop_total;
+checkError(cuEventCreate(&start_total, 0));
+checkError(cuEventCreate(&stop_total, 0));
+
+// Record the start event before copying data on stream1
+checkError(cuEventRecord(start_total, 0));
+
+// Record the start event on stream1 before copying data
+checkError(cuEventRecord(start1, stream1));
+
+// Copy the host array to the device array asynchronously on stream1
+checkError(cuMemcpyHtoDAsync(d_data1, h_data1, N * sizeof(float), stream1));
+
+// Record the stop event on stream1 after launching the kernel
+checkError(cuEventRecord(stop1, stream1));
+
+// Launch the kernel on stream1
+checkError(cuLaunchKernel(vec_multiply_2_withidx, N/256, 1, 1, 256, 1, 1, 0, stream1, args1, NULL));
+
+// Record the start event on stream2 before copying data
+checkError(cuEventRecord(start2, stream2));
+
+// Copy the host array to the device array asynchronously on stream2
+checkError(cuMemcpyHtoDAsync(d_data2, h_data2, N * sizeof(float), stream2));
+
+// Record the stop event on stream2 after launching the kernel
+checkError(cuEventRecord(stop2, stream2));
+
+// Launch the kernel on stream2
+checkError(cuLaunchKernel(vec_multiply_2_withidx, N/256, 1, 1, 256, 1, 1, 0, stream2, args2, NULL));
+
+checkError(cuEventRecord(stop_total, 0));
+
+// Synchronize the events
+checkError(cuEventSynchronize(stop1));
+checkError(cuEventSynchronize(stop2));
+
+// Calculate the elapsed time for each stream
+float time1, time2;
+checkError(cuEventElapsedTime(&time1, start1, stop1));
+checkError(cuEventElapsedTime(&time2, start2, stop2));
+
+// Print the results
+printf("Time for stream1: %f ms\n", time1);
+printf("Time for stream2: %f ms\n", time2);
+
+
+// Synchronize the event
+checkError(cuEventSynchronize(stop_total));
+
+// Calculate the elapsed time for the total time
+float time_total;
+checkError(cuEventElapsedTime(&time_total, start_total, stop_total));
+
+// Print the result
+printf("Time for total: %f ms\n", time_total);
+
+// Destroy the events
+checkError(cuEventDestroy(start_total));
+checkError(cuEventDestroy(stop_total));
+
+// Destroy the events
+checkError(cuEventDestroy(start1));
+checkError(cuEventDestroy(stop1));
+checkError(cuEventDestroy(start2));
+checkError(cuEventDestroy(stop2));
+
+    // // Launch the kernel on the streams
+    // checkError(cuLaunchKernel(vec_multiply_2_withidx, N/256, 1, 1, 256, 1, 1, 0, stream1, args1, NULL));
+    // checkError(cuLaunchKernel(vec_multiply_2_withidx, N/256, 1, 1, 256, 1, 1, 0, stream2, args2, NULL));
+
+    // // Synchronize the streams
+    // checkError(cuStreamSynchronize(stream1));
+    // checkError(cuStreamSynchronize(stream2));
+
+    // Copy the device arrays back to the host arrays asynchronously on the streams
+    checkError(cuMemcpyDtoHAsync(h_data1, d_data1, N * sizeof(float), stream1));
+    checkError(cuMemcpyDtoHAsync(h_data2, d_data2, N * sizeof(float), stream2));
+
+    // Synchronize the streams
+    checkError(cuStreamSynchronize(stream1));
+    checkError(cuStreamSynchronize(stream2));
+
+    // Check the results
+    for (int i = 0; i < N; i++) {
+        if (i >= N/4 && i < N/2) {
+            EXPECT_FLOAT_EQ(h_data1[i], i * 0.1f * 2.0f);
+        } else {
+            EXPECT_FLOAT_EQ(h_data1[i], i * 0.1f);
+        }
+        if (i >= N/2 && i < N) {
+            EXPECT_FLOAT_EQ(h_data2[i], i * 0.2f * 2.0f);
+        } else {
+            EXPECT_FLOAT_EQ(h_data2[i], i * 0.2f);
+        }
+    }
+
+    // Free the memory and destroy the streams
+    delete[] h_data1;
+    delete[] h_data2;
+    checkError(cuMemFree(d_data1));
+    checkError(cuMemFree(d_data2));
+    checkError(cuStreamDestroy(stream1));
+    checkError(cuStreamDestroy(stream2));
+
+    // Destroy the context
+    checkError(cuCtxDestroy(context));
+}
+
+
+
 class StreamOverlapTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -13,7 +183,7 @@ class StreamOverlapTest : public ::testing::Test {
     checkError(cuCtxCreate(&context_, 0, device_));
     checkError(cuModuleLoad(
         &module_,
-        "/data/system/yunfan/cuda_api/common/cuda_kernel/cuda_kernel.ptx"));
+        "cuda.ptx"));
   }
 
   void TearDown() override {
