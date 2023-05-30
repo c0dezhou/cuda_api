@@ -144,36 +144,54 @@ TEST_F(TruncatuinTest, DataTruncateCuMemsetD8ThirdParam) {
 }
 
 
-template <typename T>
-void TestTruncateCuMemsetDFirstParam(T value) {
+template <typename T, typename Tsmall>
+void TestTruncation(T value) {
   // Allocate 8 bytes
   CUdeviceptr dbuf;
   checkError(cuMemAlloc(&dbuf, 8));
 
   CUresult err;
-  if (sizeof(T) == 1) {
+
+  // Determine the right CUDA API function based on the type size
+  if (sizeof(Tsmall) == 1) {
     err = cuMemsetD8(dbuf, static_cast<unsigned char>(value), 8);
-  } else if (sizeof(T) == 2) {
-    err = cuMemsetD16(dbuf, static_cast<unsigned int>(value), 4);
-  } else if (sizeof(T) == 4) {
+  } else if (sizeof(Tsmall) == 2) {
+    err = cuMemsetD16(dbuf, static_cast<unsigned short>(value), 4);
+  } else if (sizeof(Tsmall) == 4) {
     err = cuMemsetD32(dbuf, static_cast<unsigned int>(value), 2);
   } else {
     err = CUDA_ERROR_INVALID_VALUE;
   }
 
+  // Expect successful memory setting
   EXPECT_EQ(err, CUDA_SUCCESS) << "CUDA driver API error: " << err;
+
+  // If memory setting was successful, copy data to host and check values
+  if (err == CUDA_SUCCESS) {
+    // Allocate host memory
+    Tsmall* hbuf = new Tsmall[8 / sizeof(Tsmall)];
+
+    // Copy device memory to host
+    checkError(cuMemcpyDtoH(hbuf, dbuf, 8));
+
+    // Check every element of memory
+    Tsmall truncated_value = static_cast<Tsmall>(value);
+    for (int i = 0; i < 8 / sizeof(Tsmall); ++i) {
+      EXPECT_EQ(hbuf[i], truncated_value);
+    }
+
+    delete[] hbuf;
+  }
 
   checkError(cuMemFree(dbuf));
 }
 
-#define TEST_TRUNCATE_CUMEMSETD_FIRST_PARAM(type, value) \
-  TEST_F(TruncatuinTest, DataTruncateCuMemsetD##type##FirstParam) { \
-    TestTruncateCuMemsetDFirstParam<type>(value); \
+#define TEST_TRUNCATION(type, type_small, value) \
+  TEST_F(TruncatuinTest, DataTruncateCuMemsetD##type) { \
+    TestTruncation<type, type_small>(value); \
   }
 
-TEST_TRUNCATE_CUMEMSETD_FIRST_PARAM(float, 1.5) // Truncate float to 32 bits
-TEST_TRUNCATE_CUMEMSETD_FIRST_PARAM(double, 2.5) // Truncate double to 64 bits
-TEST_TRUNCATE_CUMEMSETD_FIRST_PARAM(uint64_t, 0xFFFFFFFFFFFFFFFF) // Truncate uint64_t to 64 bits
-TEST_TRUNCATE_CUMEMSETD_FIRST_PARAM(int, -1) // Truncate int to 32 bits
-TEST_TRUNCATE_CUMEMSETD_FIRST_PARAM(char, 'a') // Truncate char to 8 bits
-TEST_TRUNCATE_CUMEMSETD_FIRST_PARAM(bool, true) // Truncate bool to 1 bit
+// Define test cases for different data types
+TEST_TRUNCATION(int, char, 0x12345678) // Test truncation from int to char
+TEST_TRUNCATION(int, short, 0x12345678) // Test truncation from int to short
+TEST_TRUNCATION(long long, int, 0x123456789abcdef0LL) // Test truncation from long long to int

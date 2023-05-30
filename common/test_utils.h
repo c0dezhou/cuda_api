@@ -14,6 +14,7 @@
 #include <random>
 #include <thread>
 #include <vector>
+#include <cmath>
 
 void performOperations(int* p, size_t alloc_size);
 void initarray(int* p, size_t alloc_size);

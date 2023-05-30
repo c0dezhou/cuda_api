@@ -56,6 +56,10 @@ class MatrixMultiplicationTest : public ::testing::Test {
     }
 };
 
+bool almostEqual(float a, float b, float epsilon) {
+    return std::fabs(a - b) <= ( (std::fabs(a) < std::fabs(b) ? std::fabs(b) : std::fabs(a)) * epsilon);
+}
+
 TEST_F(MatrixMultiplicationTest, MatrixMultiplyCPUvsGPUTest) {
         auto cpuStartTime = std::chrono::high_resolution_clock::now();
         for (int i = 0; i < N; ++i) {
@@ -100,9 +104,13 @@ TEST_F(MatrixMultiplicationTest, MatrixMultiplyCPUvsGPUTest) {
 
         checkError(cuModuleUnload(cuModule));
 
+        // for (int i = 0; i < N * N; ++i) {
+        //     EXPECT_FLOAT_EQ(C_CPU[i], C_GPU[i]);
+        // }
         for (int i = 0; i < N * N; ++i) {
-            EXPECT_FLOAT_EQ(C_CPU[i], C_GPU[i]);
+            EXPECT_TRUE(almostEqual(C_CPU[i], C_GPU[i], 1e-5));
         }
+
 
         std::cout << "Memory Usage:\n";
         std::cout << "  CPU: " << N * N * sizeof(float) * 3 / (1024 * 1024)

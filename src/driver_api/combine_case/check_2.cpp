@@ -117,6 +117,7 @@ TEST_F(StreamOverlapTest, ScenarioOne) {
 }
 
 TEST_F(StreamOverlapTest, ScenarioTwo) {
+    cuCtxSetCurrent(context_)
     CUstream stream;
     checkError(cuStreamCreate(&stream, CU_STREAM_DEFAULT));
 
@@ -125,7 +126,7 @@ TEST_F(StreamOverlapTest, ScenarioTwo) {
                                    "_Z22vec_multiply_2_withidxPfii"));
 
     int N = 1000;
-    int M = 10;
+    int M = 256;
     float *h_data, *d_data;
     checkError(cuMemAllocHost((void**)&h_data, N * sizeof(float)));
     checkError(cuMemAlloc((CUdeviceptr*)&d_data, N * sizeof(float)));

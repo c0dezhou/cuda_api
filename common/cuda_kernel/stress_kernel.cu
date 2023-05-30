@@ -20,34 +20,69 @@ __global__ void matrixMultiplyKernel(const float* A,
     }
 }
 
+// 无法递归调用 CUDA 内核,cuda 不支持递归
+// __global__ void quickSort(int* array, int left, int right) {
 
-__global__ void quickSort(int* array, int left, int right) {
+//     if (left < right) {
+//         int pivotIndex;
+//         [&array, &left, &right, &pivotIndex]() {
+//             int pivot = array[right];
+//             int i = left - 1;
 
-    if (left < right) {
-        int pivotIndex;
-        [&array, &left, &right, &pivotIndex]() {
-            int pivot = array[right];
-            int i = left - 1;
+//             for (int j = left; j <= right - 1; j++) {
+//                 if (array[j] < pivot) {
+//                     i++;
+//                     int temp = array[i];
+//                     array[i] = array[j];
+//                     array[j] = temp;
+//                 }
+//             }
+//             int temp = array[i + 1];
+//             array[i + 1] = array[right];
+//             array[right] = temp;
 
-            for (int j = left; j <= right - 1; j++) {
-                if (array[j] < pivot) {
-                    i++;
-                    int temp = array[i];
-                    array[i] = array[j];
-                    array[j] = temp;
+//             pivotIndex =  i + 1;
+//         };
+
+//         quickSort<<<1, 1>>>(array, left, pivotIndex - 1);
+//         quickSort<<<1, 1>>>(array, pivotIndex + 1, right);
+//     }
+// }
+
+__global__ void bitonic_sort(int *value) {
+    extern __shared__ int shared[];
+    const unsigned int tid = threadIdx.x;
+
+    // Copy input to shared mem.  
+    shared[tid] = value[tid];
+    __syncthreads();
+
+    // Parallel bitonic sort.
+    for (unsigned int k = 2; k <= blockDim.x; k *= 2) {
+        for (unsigned int j = k / 2; j>0; j /= 2) {
+            unsigned int ixj = tid ^ j;
+            if (ixj > tid) {
+                if ((tid & k) == 0) {
+                    if (shared[tid] > shared[ixj]) {
+                        int temp = shared[tid];
+                        shared[tid] = shared[ixj];
+                        shared[ixj] = temp;
+                    }
+                }
+                if ((tid & k) != 0) {
+                    if (shared[tid] < shared[ixj]) {
+                        int temp = shared[tid];
+                        shared[tid] = shared[ixj];
+                        shared[ixj] = temp;
+                    }
                 }
             }
-            int temp = array[i + 1];
-            array[i + 1] = array[right];
-            array[right] = temp;
-
-            pivotIndex =  i + 1;
-        };
-
-        quickSort<<<1, 1>>>(array, left, pivotIndex - 1);
-        quickSort<<<1, 1>>>(array, pivotIndex + 1, right);
+            __syncthreads();
+        }
     }
+    value[tid] = shared[tid];
 }
+
 
 __global__ void binarySearch(const int* array, int target, int* result, int array_size) {
     int left = 0;

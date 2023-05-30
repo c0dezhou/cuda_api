@@ -2,13 +2,7 @@
 
 #define MAX_GPUS  4
 
-// /data/system/yunfan/cuda_api/src/driver_api/stress_test/test_high_load_sort.cpp:64
-// cuModuleLoad(&module, "/data/system/yunfan/cuda_api/common/cuda_kernel/"
-// "stress_kernel.ptx") failed.
-// code = CUDA_ERROR_INVALID_PTX,
-//     message = a PTX JIT compilation failed Segmentation fault(core dumped)
-
-        class SortingSearchTest {
+class SortingSearchTest {
    protected:
 
     int numGPUs;
