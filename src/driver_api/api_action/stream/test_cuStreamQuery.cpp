@@ -27,7 +27,6 @@ TEST_F(CuStreamTests, AC_BA_StreamQuery_PendingOperations) {
     CUresult res = cuStreamQuery(cuStream);
     EXPECT_EQ(res, CUDA_SUCCESS);
 
-    cuStreamDestroy(cuStream);
 }
 
 TEST_F(CuStreamTests, AC_BA_StreamQuery_CompletedOperations) {

@@ -75,7 +75,7 @@ TEST_F(CuMemTest, AC_OT_MemcpyDtoD_OverlapMem) {
     CUdeviceptr d_src_;
     CUdeviceptr d_dst_;
     int* h_ptr_;
-    static const size_t N = 5; //n是5导致了重叠？
+    static const size_t N = 10; //n是5导致了重叠？
     size_t size = N * sizeof(int);
     cuMemAlloc(&d_src_, size);
     cuMemAlloc(&d_dst_, size);

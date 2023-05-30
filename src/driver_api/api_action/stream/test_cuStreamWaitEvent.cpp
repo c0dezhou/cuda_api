@@ -41,7 +41,7 @@ TEST_F(CuStreamTests, AC_BA_StreamWaitEvent_WaitForEventCompletion) {
     cuMemsetD32((CUdeviceptr)d_result2, 0, 1);
 
     void* args1[] = {&input_a, &input_b, &d_result2};
-    cuLaunchKernel(cuFunction, 1, 1, 1, 1, 1, 1, 0, cuStream2, args, nullptr);
+    cuLaunchKernel(cuFunction, 1, 1, 1, 1, 1, 1, 0, cuStream2, args1, nullptr);
 
     cuStreamSynchronize(cuStream1);
     cuStreamSynchronize(cuStream2);

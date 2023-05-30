@@ -2,8 +2,10 @@
 
 #include <cuda.h>
 #include <gtest/gtest.h>
+#include <pthread.h>
 #include <string.h>
 #include <sys/resource.h>
+#include <algorithm>
 #include <chrono>
 #include <cstdlib>
 #include <fstream>
@@ -12,7 +14,6 @@
 #include <random>
 #include <thread>
 #include <vector>
-#include <pthread.h>
 
 void performOperations(int* p, size_t alloc_size);
 void initarray(int* p, size_t alloc_size);

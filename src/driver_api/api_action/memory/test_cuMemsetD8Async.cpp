@@ -170,8 +170,8 @@ TEST_F(CuMemTest, AC_SA_MemsetD8Async_AsyncBehaviorSetD8Async) {
 
     // 可能速度太快看不出异步性，可添加一个delay
     cuMemcpyDtoH(h_ptr_, d_p, size);
-    for (size_t i = 0; i < size / sizeof(unsigned char); i++) {
-        EXPECT_NE(h_ptr_[i], uc);
+    for (size_t i = size; i > size / sizeof(unsigned char); i++) {
+        ASSERT_NE(h_ptr_[i], uc);
     }
 
     cuStreamSynchronize(0);

@@ -5,7 +5,7 @@
     api_call; \
     auto end = std::chrono::high_resolution_clock::now(); \
     std::chrono::duration<double, std::milli> diff = end - start; \
-    std::cout << #api_call << " took " << diff.count() << " ms" << std::endl; \
+    std::cout << #api_call << " expensed " << diff.count() << " ms" << std::endl; \
 } while (0)
 
 TEST(PERF, measure_all_api) {

@@ -104,3 +104,10 @@ __global__ void vec_add_3_withidx(float* data, int startIndex, int endIndex) {
         data[tid] += 3.0f;
     }
 }
+
+__global__ void vec_pow(float* data, int size) {
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tid < size) {
+        data[tid] = pow(data[tid],2);
+    }
+}
