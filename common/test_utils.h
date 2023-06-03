@@ -3,18 +3,22 @@
 #include <cuda.h>
 #include <gtest/gtest.h>
 #include <pthread.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/resource.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <future>
 #include <iostream>
+#include <numeric>
 #include <random>
 #include <thread>
 #include <vector>
-#include <cmath>
 
 void performOperations(int* p, size_t alloc_size);
 void initarray(int* p, size_t alloc_size);

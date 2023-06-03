@@ -117,7 +117,7 @@ TEST_F(StreamOverlapTest, ScenarioOne) {
 }
 
 TEST_F(StreamOverlapTest, ScenarioTwo) {
-    cuCtxSetCurrent(context_)
+    cuCtxSetCurrent(context_);
     CUstream stream;
     checkError(cuStreamCreate(&stream, CU_STREAM_DEFAULT));
 
@@ -136,10 +136,13 @@ TEST_F(StreamOverlapTest, ScenarioTwo) {
     }
 
     for (int i = 0; i < N; i += M) {
-        checkError(cuMemcpyHtoDAsync((CUdeviceptr)d_data + i, h_data + i,
+        checkError(cuMemcpyHtoDAsync((CUdeviceptr)d_data +i , h_data+i,
                                      M * sizeof(float), stream));
-        void* args[] = {&d_data, &i, &M};
-        checkError(cuLaunchKernel(kernel, M / 256, 1, 1, 256, 1, 1, 0, stream,
+        //  code = CUDA_ERROR_INVALID_VALUE, message = invalid argument
+        int start_index = i + i * M;
+        int end_index = i + i * M + M;
+        void* args[] = {&d_data, &start_index, &end_index};
+        checkError(cuLaunchKernel(kernel, M / 256 , 1, 1, 256, 1, 1, 0, stream,
                                   args, NULL));
     }
     checkError(cuMemcpyDtoHAsync(h_data, (CUdeviceptr)d_data, N * sizeof(float),

@@ -9,7 +9,6 @@ class CudaEventTest : public ::testing::Test {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank_);
     MPI_Comm_size(MPI_COMM_WORLD, &size_);
 
-    // Initialize one device for each MPI process
     devices_ = new CUdevice[size_];
     contexts_ = new CUcontext[size_];
     modules_ = new CUmodule[size_];
@@ -18,7 +17,7 @@ class CudaEventTest : public ::testing::Test {
       checkError(cuInit(0));
       checkError(cuDeviceGet(&devices_[i], i));
       checkError(cuCtxCreate(&contexts_[i], 0, devices_[i]));
-      checkError(cuModuleLoad(&modules_[i], "kernel.ptx"));
+      checkError(cuModuleLoad(&modules_[i], "/data/system/yunfan/cuda_api/common/cuda_kernel/cuda_kernel.ptx"));
     }
   }
 
@@ -63,7 +62,6 @@ TEST_F(CudaEventTest, CaseOne) {
     checkError(cuStreamCreate(&streams[i], CU_STREAM_DEFAULT));
   }
 
-  // Switch to the context of the current device
   checkError(cuCtxPushCurrent(contexts_[rank_]));
 
   CUfunction kernel;

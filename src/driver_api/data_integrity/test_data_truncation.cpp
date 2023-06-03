@@ -25,8 +25,7 @@ TEST_F(TruncatuinTest, DataTruncateCuMemAllocSecondParam) {
     CUdeviceptr dptr;
     CUresult err = cuMemAlloc(&dptr, size);
 
-    EXPECT_EQ(err, CUDA_ERROR_OUT_OF_MEMORY)
-        << "CUDA driver API error: " << err;
+    EXPECT_EQ(err, CUDA_ERROR_OUT_OF_MEMORY)  << err;
 }
 
 TEST_F(TruncatuinTest, DataTruncateCuMemcpyHtoDThirdParam) {
@@ -40,7 +39,7 @@ TEST_F(TruncatuinTest, DataTruncateCuMemcpyHtoDThirdParam) {
   short size = 9; //short 16 bit
   CUresult err = cuMemcpyHtoD(dbuf, hbuf, size);
 
-  EXPECT_EQ(err, CUDA_ERROR_INVALID_VALUE) << "CUDA driver API error: " << err;
+  EXPECT_EQ(err, CUDA_ERROR_INVALID_VALUE) << err;
 
   free(hbuf);
   checkError(cuMemFree(dbuf));
@@ -52,7 +51,7 @@ TEST_F(TruncatuinTest, DataTruncateCuMemAllocFirstParam) {
   CUdeviceptr dptr;
   CUresult err = cuMemAlloc(&dptr, (size_t)size);
 
-  EXPECT_EQ(err, CUDA_SUCCESS) << "CUDA driver API error: " << err;
+  EXPECT_EQ(err, CUDA_SUCCESS)  << err;
 
   checkError(cuMemFree(dptr));
 }
@@ -64,7 +63,7 @@ TEST_F(TruncatuinTest, DataTruncateCuMemFreeFirstParam) {
   int invalid_ptr = -1; //32 bit
   CUresult err = cuMemFree((CUdeviceptr)invalid_ptr);
 
-  EXPECT_EQ(err, CUDA_ERROR_INVALID_VALUE) << "CUDA driver API error: " << err;
+  EXPECT_EQ(err, CUDA_ERROR_INVALID_VALUE)  << err;
 
   checkError(cuMemFree(dbuf));
 }
@@ -79,7 +78,7 @@ TEST_F(TruncatuinTest, DataTruncateCuMemcpyDtoHThirdParam) {
   short size = 9; //16 bits
   CUresult err = cuMemcpyDtoH(hbuf, dbuf, size);
 
-  EXPECT_EQ(err, CUDA_ERROR_INVALID_VALUE) << "CUDA driver API error: " << err;
+  EXPECT_EQ(err, CUDA_ERROR_INVALID_VALUE) << err;
 
   checkError(cuMemFree(dbuf));
   free(hbuf);
@@ -91,7 +90,7 @@ TEST_F(TruncatuinTest, DataTruncateCuStreamCreateSecondParam1) {
   CUstream stream;
   CUresult err = cuStreamCreate(&stream, (unsigned int)flags);
 
-  EXPECT_EQ(err, CUDA_ERROR_INVALID_VALUE) << "CUDA driver API error: " << err;
+  EXPECT_EQ(err, CUDA_ERROR_INVALID_VALUE) << err;
 }
 
 
@@ -100,7 +99,7 @@ TEST_F(TruncatuinTest, DataTruncateCuMemAllocFirstParam11) {
   CUdeviceptr dptr;
   CUresult err = cuMemAlloc(&dptr, (size_t)size);
 
-  EXPECT_EQ(err, CUDA_SUCCESS) << "CUDA driver API error: " << err;
+  EXPECT_EQ(err, CUDA_SUCCESS)  << err;
 
   checkError(cuMemFree(dptr));
 }
@@ -113,7 +112,7 @@ TEST_F(TruncatuinTest, DataTruncateCuMemsetD8FirstParam) {
   float value = 1.5; // 32 bits
   CUresult err = cuMemsetD8(dbuf, (unsigned char)value, 8);
 
-  EXPECT_EQ(err, CUDA_SUCCESS) << "CUDA driver API error: " << err;
+  EXPECT_EQ(err, CUDA_SUCCESS)  << err;
 
   checkError(cuMemFree(dbuf));
 }
@@ -125,7 +124,7 @@ TEST_F(TruncatuinTest, DataTruncateCuMemsetD8SecondParam) {
   int value = -1; //32 bits
   CUresult err = cuMemsetD8(dbuf, (unsigned char)value, 8);
 
-  EXPECT_EQ(err, CUDA_SUCCESS) << "CUDA driver API error: " << err;
+  EXPECT_EQ(err, CUDA_SUCCESS)  << err;
 
   checkError(cuMemFree(dbuf));
 }
@@ -138,21 +137,18 @@ TEST_F(TruncatuinTest, DataTruncateCuMemsetD8ThirdParam) {
   short size = 9; // 16 bits
   CUresult err = cuMemsetD8(dbuf, 0, size);
 
-  EXPECT_EQ(err, CUDA_ERROR_INVALID_VALUE) << "CUDA driver API error: " << err;
+  EXPECT_EQ(err, CUDA_ERROR_INVALID_VALUE)  << err;
 
   checkError(cuMemFree(dbuf));
 }
 
-
 template <typename T, typename Tsmall>
 void TestTruncation(T value) {
-  // Allocate 8 bytes
   CUdeviceptr dbuf;
   checkError(cuMemAlloc(&dbuf, 8));
 
   CUresult err;
 
-  // Determine the right CUDA API function based on the type size
   if (sizeof(Tsmall) == 1) {
     err = cuMemsetD8(dbuf, static_cast<unsigned char>(value), 8);
   } else if (sizeof(Tsmall) == 2) {
@@ -163,18 +159,13 @@ void TestTruncation(T value) {
     err = CUDA_ERROR_INVALID_VALUE;
   }
 
-  // Expect successful memory setting
-  EXPECT_EQ(err, CUDA_SUCCESS) << "CUDA driver API error: " << err;
+  EXPECT_EQ(err, CUDA_SUCCESS)  << err;
 
-  // If memory setting was successful, copy data to host and check values
   if (err == CUDA_SUCCESS) {
-    // Allocate host memory
     Tsmall* hbuf = new Tsmall[8 / sizeof(Tsmall)];
 
-    // Copy device memory to host
     checkError(cuMemcpyDtoH(hbuf, dbuf, 8));
 
-    // Check every element of memory
     Tsmall truncated_value = static_cast<Tsmall>(value);
     for (int i = 0; i < 8 / sizeof(Tsmall); ++i) {
       EXPECT_EQ(hbuf[i], truncated_value);
@@ -186,12 +177,13 @@ void TestTruncation(T value) {
   checkError(cuMemFree(dbuf));
 }
 
-#define TEST_TRUNCATION(type, type_small, value) \
-  TEST_F(TruncatuinTest, DataTruncateCuMemsetD##type) { \
-    TestTruncation<type, type_small>(value); \
+#define TEST_TRUNCATION(type, type_small, value)        \
+  TEST_F(TruncatuinTest, DataTruncateCuMemsetD##type##type_small) { \
+    TestTruncation<type, type_small>(value);            \
   }
 
-// Define test cases for different data types
-TEST_TRUNCATION(int, char, 0x12345678) // Test truncation from int to char
-TEST_TRUNCATION(int, short, 0x12345678) // Test truncation from int to short
-TEST_TRUNCATION(long long, int, 0x123456789abcdef0LL) // Test truncation from long long to int
+TEST_TRUNCATION(int, char, 0x12345678)
+TEST_TRUNCATION(int, short, 0x12345678)
+TEST_TRUNCATION(uint64_t,
+                int,
+                0x123456789abcdef0LL)

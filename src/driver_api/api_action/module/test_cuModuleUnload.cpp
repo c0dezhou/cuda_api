@@ -65,6 +65,8 @@ TEST(cuModuleTest_, AC_INV_ModuleUnload_UnloadOnotherContext) {
     CUcontext context2;
     res = cuCtxCreate(&context2, 0, device);
     EXPECT_EQ(CUDA_SUCCESS, res);
+    res = cuCtxSetCurrent(context2);
+    EXPECT_EQ(CUDA_SUCCESS, res);
     CUfunction function;
     res = cuModuleGetFunction(&function, module_sm80, "_Z6vecAddPfS_S_");
     EXPECT_EQ(CUDA_SUCCESS, res);

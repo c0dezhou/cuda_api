@@ -63,7 +63,8 @@ public:
                              "/data/system/yunfan/cuda_api/common/cuda_kernel/"
                              "stress_kernel.ptx"));
             CUfunction sortingKernel;
-            checkError(cuModuleGetFunction(&sortingKernel, module, "_Z9quickSortPiii"));
+            checkError(cuModuleGetFunction(&sortingKernel, module,
+                                           "_Z12bitonic_sortPi"));
             void* sortingArgs[] = {&gpuArrays, &gpuResults};
             checkError(cuLaunchKernel(sortingKernel, arraysPerGPU, 1, 1, BATCH_SIZE, 1, 1,
                            0, streams[gpuIndex], sortingArgs, nullptr));
