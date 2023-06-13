@@ -70,6 +70,34 @@ __global__ void div_kernel(float* a, float* b, float* c, int n) {
     }
 }
 
+__global__ void add_inplace_kernel(float* a, float* b, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        a[i] = a[i] + b[i];
+    }
+}
+
+__global__ void mul_inplace_kernel(float* a, float* b, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        a[i] = a[i] * b[i];
+    }
+}
+
+__global__ void sub_inplace_kernel(float* a, float* b, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) {
+        a[i] = a[i] - b[i];
+    }
+}
+
+__global__ void div_inplace_kernel(float* a, float* b, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n && b[i] != 0) {
+        a[i] = a[i] / b[i];
+    }
+}
+
 __global__ void vec_multiply_2(float* data, int size) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < size) {

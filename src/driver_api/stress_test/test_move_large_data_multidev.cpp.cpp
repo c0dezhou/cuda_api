@@ -5,18 +5,18 @@
 #define ROUNDS 10
 #define DEVICE_COUNT 2
 
-void run_calculation4(int device) {
-    CUdevice cuDevice;
-    CUcontext cuContext;
-    CUmodule cuModule;
-    CUfunction vecAdd;
+void run_calsdlation4(int device) {
+    SDdevice sdDevice;
+    SDcontext sdContext;
+    SDmodule sdModule;
+    SDfunction vecAdd;
 
-    cuInit(0);
-    cuDeviceGet(&cuDevice, 0);
-    cuCtxCreate(&cuContext, 0, cuDevice);
+    sdInit(0);
+    sdDeviceGet(&sdDevice, 0);
+    sdCtxCreate(&sdContext, 0, sdDevice);
 
     for (int round = 0; round < ROUNDS; round++) {
-        CUdeviceptr d_a, d_b, d_c;
+        SDdeviceptr d_a, d_b, d_c;
         size_t size = SIZE_LARGE;
         float* h_c = (float*)malloc(size * sizeof(float));
 
@@ -27,27 +27,27 @@ void run_calculation4(int device) {
             b[i] = i;
         }
 
-        cuMemAlloc(&d_a, size * sizeof(float));
-        cuMemAlloc(&d_b, size * sizeof(float));
-        cuMemAlloc(&d_c, size * sizeof(float));
+        sdMemAlloc(&d_a, size * sizeof(float));
+        sdMemAlloc(&d_b, size * sizeof(float));
+        sdMemAlloc(&d_c, size * sizeof(float));
 
         int one = 1;
-        cuMemsetD32(d_a, one, size);
-        cuMemsetD32(d_b, one, size);
+        sdMemsetD32(d_a, one, size);
+        sdMemsetD32(d_b, one, size);
 
-        checkError(cuModuleLoad(
-            &cuModule,
-            "/data/system/yunfan/cuda_api/common/cuda_kernel/cuda_kernel.ptx"));
+        checkError(sdModuleLoad(
+            &sdModule,
+            "/data/system/yunfan/sdda_api/common/sdda_kernel/sdda_kernel.ptx"));
         checkError(
-            cuModuleGetFunction(&vecAdd, cuModule, "_Z10mul_kernelPfS_S_i"));
+            sdModuleGetFunction(&vecAdd, sdModule, "_Z10mul_kernelPfS_S_i"));
 
         int n = size;
         void* args[] = {&d_a, &d_b, &d_c, &n};
-        checkError(cuLaunchKernel(vecAdd, size / THREADS_PER_BLOCK, 1, 1,
+        checkError(sdLaunchKernel(vecAdd, size / THREADS_PER_BLOCK, 1, 1,
                                   THREADS_PER_BLOCK, 1, 1, 0, 0, args, 0));
-        cuCtxSynchronize();
+        sdCtxSynchronize();
 
-        cuMemcpyDtoH(h_c, d_c, size * sizeof(float));
+        sdMemcpyDtoH(h_c, d_c, size * sizeof(float));
 
         bool valid = true;
         for (int i = 0; i < size; i++) {
@@ -59,11 +59,11 @@ void run_calculation4(int device) {
         printf("Process %d: data is %svalid\n", getpid(), valid ? "" : "in");
 
         free(h_c);
-        cuMemFree(d_a);
-        cuMemFree(d_b);
-        cuMemFree(d_c);
+        sdMemFree(d_a);
+        sdMemFree(d_b);
+        sdMemFree(d_c);
     }
-    cuCtxDestroy(cuContext);
+    sdCtxDestroy(sdContext);
 
 }
 
@@ -71,7 +71,7 @@ TEST(Stress_Large, large_data_mdev) {
     for (int i = 0; i < DEVICE_COUNT; i++) {
         pid_t pid = fork();
         if (pid == 0) {
-            run_calculation4(i);
+            run_calsdlation4(i);
         } else if (pid < 0) {
             printf("Error: fork failed.\n");
         }

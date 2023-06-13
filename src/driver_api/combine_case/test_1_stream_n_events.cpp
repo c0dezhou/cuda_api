@@ -164,5 +164,9 @@ TEST(COMBINE, 1_stream_n_event) {
 
         checkError(cuEventDestroy(event));
     }
+
+    for (int i = 0; i < NUM_TASKS; i++) {
+        free_device_memory(d_a[i], d_b[i], d_c[i]);
+    }
     cleanup_cuda();
 }
